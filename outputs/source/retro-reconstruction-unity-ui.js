@@ -11,6 +11,7 @@ import {
 } from 'unity_academy';
 
 const posterUrl = 'https://shu0819-sjy.github.io/retro-reconstruction-player/gpt6-poster-reference.png';
+init_unity_academy_2d();
 const rootObject = instantiate_empty();
 const posterObject = instantiate_sprite(posterUrl);
 let activePage = 'POSTER';
@@ -99,5 +100,4 @@ function renderUi(gameObject) {
   }
 }
 
-init_unity_academy_2d();
 set_update(rootObject, renderUi);
