@@ -14,9 +14,23 @@ const posterUrl = 'https://shu0819-sjy.github.io/retro-reconstruction-player/gpt
 init_unity_academy_2d();
 const rootObject = instantiate_empty();
 const posterObject = instantiate_sprite(posterUrl);
+const posterLeftObject = instantiate_sprite(posterUrl);
+const posterRightObject = instantiate_sprite(posterUrl);
+const posterBackLeftObject = instantiate_sprite(posterUrl);
+const posterBackRightObject = instantiate_sprite(posterUrl);
 let activePage = 'POSTER';
 let statusText = 'READY / UI CORE ONLINE';
 let posterAngle = 0;
+
+// 功能：控制海报拼贴层显示状态；入参为是否显示；返回值无。
+function setPosterVisible(isVisible) {
+  const scale = isVisible ? 1 : 0;
+  set_scale(posterObject, 0.52 * scale, 0.52 * scale, 1);
+  set_scale(posterLeftObject, 0.32 * scale, 0.32 * scale, 1);
+  set_scale(posterRightObject, 0.32 * scale, 0.32 * scale, 1);
+  set_scale(posterBackLeftObject, 0.22 * scale, 0.22 * scale, 1);
+  set_scale(posterBackRightObject, 0.22 * scale, 0.22 * scale, 1);
+}
 
 // 功能：切换 UI 页面；入参为页面名称；返回值无，未知页面时回到 POSTER。
 function openPage(pageName) {
@@ -42,10 +56,18 @@ function drawNavigation(gameObject) {
 
 // 功能：绘制海报首页；入参为当前 Unity GameObject；返回值无。
 function drawPoster(gameObject) {
+  setPosterVisible(true);
   set_position(posterObject, 640, 390, 4);
-  set_scale(posterObject, 0.52, 0.52, 1);
-  posterAngle = posterAngle + 0.08;
-  set_rotation_euler(posterObject, 0, posterAngle, 0);
+  set_position(posterLeftObject, 330, 330, 2);
+  set_position(posterRightObject, 950, 350, 2);
+  set_position(posterBackLeftObject, 240, 210, 1);
+  set_position(posterBackRightObject, 1060, 230, 1);
+  posterAngle = posterAngle + 0.04;
+  set_rotation_euler(posterObject, 0, 0, math_sin(posterAngle) * 2);
+  set_rotation_euler(posterLeftObject, 0, 0, -8 + math_sin(posterAngle) * 2);
+  set_rotation_euler(posterRightObject, 0, 0, 7 + math_sin(posterAngle + 1) * 2);
+  set_rotation_euler(posterBackLeftObject, 0, 0, -14);
+  set_rotation_euler(posterBackRightObject, 0, 0, 13);
   gui_label('<size=48><b>Retro</b></size>', 730, 190);
   gui_label('<size=48><b>Reconstruction</b></size>', 730, 245);
   gui_label('<size=48><b>Player</b></size>', 730, 300);
@@ -92,10 +114,13 @@ function renderUi(gameObject) {
   if (activePage === 'POSTER') {
     drawPoster(gameObject);
   } else if (activePage === 'INTRO') {
+    setPosterVisible(false);
     drawIntro(gameObject);
   } else if (activePage === 'PLAYER') {
+    setPosterVisible(false);
     drawPlayer(gameObject);
   } else {
+    setPosterVisible(false);
     drawLibrary(gameObject);
   }
 }
