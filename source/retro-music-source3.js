@@ -1,8 +1,10 @@
 // Retro Reconstruction Player 原曲事件的 Source §3 版本。
-// 选择 Source §3 后直接点击 Run；代码不依赖浏览器 API。
+// 选择 Source §3 或 Source §4，加载 SOUNDS 库后点击 Run。
+// 运行前请打开 Source Academy 左上角的浏览器声音开关。
 
 const songDuration = 50;
 const sampleRate = 44100;
+const binRate = 32;
 
 const INTRO_SPARK_EVENTS = [
 [1.324, 73, 0.794, 1.000], 
@@ -1475,10 +1477,42 @@ function buildFullSong() {
   return mergeEvents(openingDrums, PERCUSSION_EVENTS);
 }
 
+// 功能：把事件轨道压缩为可试听的频率表；入参为事件数组；返回每个时间格的频率。
+function buildFrequencyBins(events) {
+  const bins = [];
+  let eventIndex = 0;
+  for (eventIndex = 0; eventIndex < array_length(events); eventIndex = eventIndex + 1) {
+    const eventData = events[eventIndex];
+    const startBin = math_floor(eventData[0] * binRate);
+    const endBin = math_floor((eventData[0] + eventData[2]) * binRate);
+    let binIndex = startBin;
+    for (binIndex = startBin; binIndex <= endBin; binIndex = binIndex + 1) {
+      bins[binIndex] = midiToFrequency(eventData[1]);
+    }
+  }
+  return bins;
+}
+
+// 功能：生成 Source SOUNDS 所需的波形；入参为时间秒数；返回 -1 到 1 的采样值。
+function sourceWave(time) {
+  const binIndex = math_floor(time * binRate);
+  const melodyFrequency = melodyBins[binIndex];
+  const bassFrequency = bassBins[binIndex];
+  const percussionFrequency = percussionBins[binIndex];
+  const melodyValue = is_undefined(melodyFrequency) ? 0 : math_sin(2 * math_PI * melodyFrequency * time) * 0.18;
+  const bassValue = is_undefined(bassFrequency) ? 0 : math_sin(2 * math_PI * bassFrequency * time) * 0.12;
+  const percussionValue = is_undefined(percussionFrequency) ? 0 : math_sin(2 * math_PI * percussionFrequency * time) * 0.08;
+  return melodyValue + bassValue + percussionValue;
+}
+
 const fullSong = buildFullSong();
+const melodyBins = buildFrequencyBins(MAIN_MELODY_EVENTS);
+const bassBins = buildFrequencyBins(BASS_EVENTS);
+const percussionBins = buildFrequencyBins(PERCUSSION_EVENTS);
 display(songDuration, '原曲总时长');
 display(eventCount(MAIN_MELODY_EVENTS), '主旋律事件数');
 display(eventCount(BASS_EVENTS), '低音事件数');
 display(eventCount(PERCUSSION_EVENTS), '打击乐事件数');
 display(eventCount(fullSong), '完整事件总数');
 display(midiToFrequency(MAIN_MELODY_EVENTS[0][1]), '首个音符频率');
+play(pair(sourceWave, songDuration));
