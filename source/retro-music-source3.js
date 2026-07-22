@@ -6,7 +6,7 @@ import { play, make_sound } from 'sound';
 
 const songDuration = 50;
 const sampleRate = 44100;
-const binRate = 32;
+const binRate = 128;
 
 const INTRO_SPARK_EVENTS = [
 [1.324, 73, 0.794, 1.000], 
@@ -1500,11 +1500,9 @@ function sourceWave(time) {
   const binIndex = math_floor(time * binRate);
   const melodyFrequency = melodyBins[binIndex];
   const bassFrequency = bassBins[binIndex];
-  const percussionFrequency = percussionBins[binIndex];
   const melodyValue = is_undefined(melodyFrequency) ? 0 : math_sin(2 * math_PI * melodyFrequency * time) * 0.18;
   const bassValue = is_undefined(bassFrequency) ? 0 : math_sin(2 * math_PI * bassFrequency * time) * 0.12;
-  const percussionValue = is_undefined(percussionFrequency) ? 0 : math_sin(2 * math_PI * percussionFrequency * time) * 0.08;
-  return melodyValue + bassValue + percussionValue;
+  return melodyValue + bassValue;
 }
 
 const fullSong = buildFullSong();
