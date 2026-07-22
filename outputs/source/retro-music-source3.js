@@ -1,3 +1,5 @@
+import { play, make_sound } from 'sound';
+
 // Retro Reconstruction Player 原曲事件的 Source §3 版本。
 // 选择 Source §3 或 Source §4，加载 SOUNDS 库后点击 Run。
 // 运行前请打开 Source Academy 左上角的浏览器声音开关。
@@ -1515,4 +1517,4 @@ display(eventCount(BASS_EVENTS), '低音事件数');
 display(eventCount(PERCUSSION_EVENTS), '打击乐事件数');
 display(eventCount(fullSong), '完整事件总数');
 display(midiToFrequency(MAIN_MELODY_EVENTS[0][1]), '首个音符频率');
-play(pair(sourceWave, songDuration));
+play(make_sound(sourceWave, songDuration));
