@@ -1,0 +1,836 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Retro Radio / Rick Astley 器乐复刻</title>
+  <style>
+    :root { --bg: #0e1110; --panel: #171c19; --deep: #101411; --line: #2c372e; --text: #f1f2e9; --muted: #8d978d; --lime: #d8f36b; --orange: #f09a61; --radius: 8px; }
+    * { box-sizing: border-box; } body { margin: 0; min-width: 320px; background: var(--bg); color: var(--text); font: 14px/1.45 system-ui, sans-serif; } button, input { font: inherit; } button { border: 1px solid var(--line); border-radius: 6px; padding: .58rem .8rem; background: var(--panel); color: var(--text); cursor: pointer; } button:hover, button:focus-visible { border-color: var(--lime); outline: 0; } button.primary { border-color: var(--lime); background: var(--lime); color: #11150f; font-weight: 800; } a { color: var(--lime); text-decoration: none; }
+    .app { display: grid; grid-template-columns: 230px minmax(0,1fr); gap: 1rem; min-height: 100vh; padding: 1rem 1rem 6.5rem; } .topbar { grid-column: 1/-1; display: flex; justify-content: space-between; align-items: center; gap: 1rem; min-height: 54px; border-bottom: 1px solid var(--line); } .brand { display: flex; align-items: center; gap: .7rem; } .mark { display: grid; place-items: center; width: 34px; height: 34px; border: 1px solid var(--lime); color: var(--lime); font-weight: 900; } .eyebrow, .side-label, .meta { color: var(--muted); font-size: .68rem; letter-spacing: .13em; text-transform: uppercase; } .sub, .status { color: var(--muted); font-size: .76rem; }
+    .sidebar { display: grid; align-content: start; gap: 1rem; } .side-section, .panel { border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); padding: .9rem; } .side-label { margin-bottom: .6rem; } .nav, .presets { display: grid; gap: .25rem; } .nav button, .preset { border-color: transparent; background: transparent; color: var(--muted); text-align: left; } .nav button[aria-current="page"], .nav button:hover, .preset[aria-pressed="true"], .preset:hover { border-color: var(--line); color: var(--text); } .nav b { display: inline-block; width: 1.5rem; color: var(--lime); } .preset { display: flex; align-items: center; gap: .55rem; width: 100%; } .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--dot); }
+    .card { position: relative; min-height: 220px; touch-action: pan-y; cursor: grab; transform-style: preserve-3d; transition: transform 420ms cubic-bezier(.2,.8,.2,1); } .card.dragging { cursor: grabbing; transition: none; } .card-inner { position: relative; min-height: 220px; overflow: hidden; border: 1px solid #4b5a3e; border-radius: var(--radius); background-color: #1a2118; background-image: var(--cover-url); background-position: center; background-size: cover; box-shadow: 0 18px 40px #0006; transform-style: preserve-3d; } .card-inner:before { content: ''; position: absolute; inset: 12px; border: 1px solid #d8f36b70; border-radius: 5px; transform: translateZ(12px); } .ring { position: absolute; top: 30px; right: 25px; width: 88px; height: 88px; border: 1px solid #d8f36bcc; border-radius: 50%; box-shadow: 0 0 0 12px #d8f36b18, 0 0 0 24px #d8f36b0d; transform: translateZ(28px); animation: ring-spin 18s linear infinite; } .ring:after { content: ''; position: absolute; top: 18px; right: 13px; width: 5px; height: 5px; border-radius: 50%; background: var(--orange); box-shadow: 0 0 18px var(--orange); } .card-copy { position: absolute; right: 1.1rem; bottom: 1rem; left: 1.1rem; transform: translateZ(34px); text-shadow: 0 2px 12px #000; } .card-copy strong, .card-copy span { display: block; } .card-copy span { margin-top: .2rem; color: #e4eadc; font-size: .72rem; }
+    .main { display: grid; align-content: start; gap: 1rem; min-width: 0; } .stage { position: relative; min-height: 360px; overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius); background: var(--stage-bg, var(--deep)); transition: background 500ms ease, border-color 500ms ease; } .hero { position: absolute; z-index: 1; top: clamp(1.2rem,5vw,2.4rem); left: clamp(1.2rem,5vw,2.4rem); } h1 { max-width: 10ch; margin: .55rem 0; font-size: clamp(2rem,5.5vw,4.8rem); line-height: .9; letter-spacing: -.04em; } .visualizer { width: 100%; height: 100%; min-height: 360px; } .ascii { position: absolute; right: 4rem; bottom: 2.4rem; color: var(--stage-accent, var(--lime)); font: .75rem/1.15 'Courier New', monospace; text-shadow: 0 0 16px var(--stage-glow, #d8f36b40); white-space: pre; } .meta { position: absolute; right: 1rem; bottom: 1rem; left: 1rem; display: flex; justify-content: space-between; } .ripple { position: absolute; z-index: 2; width: 12px; height: 12px; border: 1px solid var(--stage-accent, var(--lime)); border-radius: 50%; pointer-events: none; transform: translate(-50%,-50%); animation: ripple 720ms ease-out forwards; } @keyframes ripple { to { opacity: 0; transform: translate(-50%,-50%) scale(22); } } @keyframes ring-spin { to { transform: translateZ(28px) rotate(360deg); } }
+    .library-panel { display: grid; gap: .7rem; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); padding: 1rem; } .library-panel[hidden] { display: none; } .library-song { display: flex; justify-content: space-between; align-items: center; gap: 1rem; border: 1px solid var(--line); border-radius: 6px; padding: .75rem; background: var(--deep); } .library-song small { display: block; color: var(--muted); } .page-shell { display: grid; gap: .7rem; } .page { display: none; } .page.is-active { display: block; } .page-nav { display: flex; justify-content: space-between; align-items: center; gap: .7rem; border: 1px solid var(--line); border-radius: var(--radius); padding: .6rem; background: var(--panel); } .page-nav button { min-width: 38px; padding: .4rem .6rem; } .page-dots { display: flex; gap: .3rem; } .page-dot { width: 24px; height: 3px; min-width: 0; padding: 0; border: 0; border-radius: 0; background: var(--line); } .page-dot.is-active { background: var(--lime); }
+    .heading { display: flex; justify-content: space-between; align-items: center; gap: 1rem; } h2 { margin: 0; font-size: 1rem; } .transport { display: flex; flex-wrap: wrap; gap: .55rem; margin-top: .9rem; } .settings { display: grid; grid-template-columns: repeat(3,1fr); gap: .6rem; margin-top: .8rem; } .settings label { color: var(--muted); font-size: .72rem; } .settings input { display: block; width: 100%; margin-top: .25rem; border: 1px solid var(--line); border-radius: 5px; padding: .45rem; background: var(--deep); color: var(--text); } .track-list { display: grid; margin-top: .8rem; } .track-row { display: grid; grid-template-columns: minmax(170px,1.2fr) minmax(100px,2fr) minmax(70px,.5fr) auto; align-items: center; gap: .7rem; padding: .7rem 0; border-top: 1px solid var(--line); } .track-meta { display: flex; align-items: center; gap: .55rem; min-width: 0; } .track-dot { width: 8px; height: 8px; background: var(--track); border-radius: 50%; } .track-name strong, .track-name span { display: block; } .track-name strong { font-size: .82rem; } .track-name span, .level, .note { color: var(--muted); font-size: .7rem; } .track-name span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .volume { width: 100%; accent-color: var(--track); } .toggle { min-width: 54px; font-size: .72rem; }
+    .now { position: fixed; z-index: 5; right: 1rem; bottom: 1rem; left: 1rem; display: grid; grid-template-columns: minmax(150px,.8fr) minmax(180px,2fr) auto; gap: 1rem; align-items: center; padding: .8rem 1rem; border: 1px solid #526044; border-radius: var(--radius); background: #101411f7; box-shadow: 0 18px 40px #00000059; } .now-title strong, .now-title span { display: block; } .now-title span, .progress-line { color: var(--muted); font-size: .7rem; } .progress { width: 100%; accent-color: var(--lime); } .progress-line { display: flex; justify-content: space-between; } .actions { display: flex; gap: .4rem; } .actions button { min-width: 34px; padding: .45rem; }
+    @media (max-width:760px) { .app { grid-template-columns: 1fr; padding: .8rem .8rem 9rem; } .topbar { align-items: flex-start; flex-direction: column; padding-bottom: .7rem; } .sidebar { grid-template-columns: 1fr 1fr; } .card { grid-column: 1/-1; } .stage, .visualizer { min-height: 300px; } .track-row { grid-template-columns: minmax(145px,1fr) auto; } .volume { grid-column: 1/-1; } .level { display: none; } .now { right: .8rem; bottom: .8rem; left: .8rem; grid-template-columns: 1fr auto; gap: .5rem; } .progress-wrap { grid-column: 1/-1; grid-row: 2; } .actions { grid-column: 2; grid-row: 1; } } @media (max-width:500px) { .sidebar { grid-template-columns: 1fr; } .ascii { right: 1rem; bottom: 2.2rem; font-size: .62rem; } }
+  </style>
+  <style>
+    .card-inner { background-image: url('https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1600&q=82'); }
+    .page-shell { display: grid; gap: .7rem; }
+    .page { display: none; }
+    .page.is-active { display: block; }
+    .page-nav { display: flex; justify-content: space-between; align-items: center; gap: .7rem; border: 1px solid var(--line); border-radius: var(--radius); padding: .6rem; background: var(--panel); }
+    .page-nav button { min-width: 38px; padding: .4rem .6rem; }
+    .page-dots { display: flex; gap: .3rem; }
+    .page-dot { width: 24px; height: 3px; min-width: 0; padding: 0; border: 0; border-radius: 0; background: var(--line); }
+    .page-dot.is-active { background: var(--lime); }
+    .stage { min-height: 300px !important; background: #0d1218 !important; }
+    .visualizer { min-height: 300px !important; filter: saturate(1.45) contrast(1.22); }
+    h1 { max-width: 9ch !important; font-size: clamp(2rem, 5vw, 4.5rem) !important; }
+    .card { transition: transform 420ms cubic-bezier(.2,.8,.2,1), filter 420ms ease; }
+    .card:hover { filter: brightness(1.14) saturate(1.2); }
+    .ring { animation-duration: 24s !important; }
+    .library-panel { display: grid; gap: .7rem; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); padding: 1rem; }
+    .library-panel[hidden] { display: none; }
+    .library-song { display: flex; justify-content: space-between; align-items: center; gap: 1rem; border: 1px solid var(--line); border-radius: 6px; padding: .75rem; background: var(--deep); }
+    .library-song small { display: block; color: var(--muted); }
+    @media (max-width: 760px) { .stage, .visualizer { min-height: 270px !important; } .hero { top: 1rem; left: 1rem; } .ascii { right: 1rem; bottom: 2rem; } }
+  </style>
+  <style>
+    .ring { display: none !important; }
+    .meta, .ascii { display: none !important; }
+    .visualizer { opacity: .16; }
+    .audio-signal { position: absolute; z-index: 1; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+    .hero { z-index: 2; }
+    .card-inner { transition: transform 260ms ease-out, filter 260ms ease-out; }
+    .card-inner { animation: cover-color-shift 16s ease-in-out infinite alternate; }
+    .card-inner::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: #4d66b522; mix-blend-mode: color; animation: cover-tint 12s ease-in-out infinite alternate; }
+    .app.focus-page { grid-template-columns: minmax(0, 1fr); }
+    .app.compact-layout { grid-template-columns: minmax(0, 1fr); }
+    .sidebar { display: none !important; }
+    .app.focus-page .sidebar { display: none; }
+    .page:nth-child(2) .transport { display: none; }
+    .page:nth-child(2) .now { position: static; right: auto; bottom: auto; left: auto; margin-top: .7rem; }
+    .page:not(.is-active) .now { display: none !important; }
+    @keyframes cover-color-shift { 0% { filter: saturate(.92) hue-rotate(-4deg); } 100% { filter: saturate(1.18) hue-rotate(8deg); } }
+    @keyframes cover-tint { 0% { background-color: #203c7a22; } 100% { background-color: #7a3d2b2b; } }
+    .song-deck { position: relative; min-height: 520px; overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius); background: #080a0d; }
+    .song-deck-title { position: absolute; top: 1rem; left: 1rem; z-index: 2; color: var(--muted); font-size: .72rem; letter-spacing: .15em; text-transform: uppercase; }
+    .song-card { position: absolute; top: 50%; left: 50%; width: min(64%, 300px); min-height: 330px; border: 10px solid #191b1f; border-radius: 7px; padding: 0; overflow: hidden; background-position: center; background-size: cover; box-shadow: 0 24px 46px #000a; color: #fff; transform: translate(-50%, -50%) rotate(var(--rotate)) translate(var(--x), var(--y)); transition: transform 420ms cubic-bezier(.2,.8,.2,1), filter 280ms ease; }
+    .song-card::after { content: ''; position: absolute; inset: 0; background: #00000026; pointer-events: none; }
+    .song-card:hover { z-index: 5; filter: brightness(1.18) saturate(1.2); transform: translate(-50%, -50%) rotate(0deg) translate(0, -12px) scale(1.04); }
+    .song-card strong, .song-card small { position: absolute; z-index: 2; right: .8rem; bottom: 1.7rem; left: .8rem; text-align: left; text-shadow: 0 2px 10px #000; }
+    .song-card small { bottom: .7rem; color: #d7ded5; }
+    .song-card[aria-disabled="true"] { cursor: not-allowed; filter: grayscale(.75) brightness(.72); }
+    @media (max-width: 600px) { .song-deck { min-height: 460px; } .song-card { width: 62%; min-height: 270px; } }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar"><div class="brand"><span class="mark">MR</span><div><div class="eyebrow">MINI RADIO / AUDIO LAB</div><strong>Retro Reconstruction Player</strong><div class="sub">真实 Looper 生成 · 50 秒 · 浏览器播放</div></div></div><div><a href="https://mineradio.cn/" target="_blank" rel="noreferrer">Mineradio 参考 ↗</a><span id="status" class="status">等待用户播放</span></div></header>
+    <aside class="sidebar"><section class="side-section"><div class="side-label">Library</div><nav class="nav"><button aria-current="page"><b>◉</b>当前播放</button><button><b>▦</b>复刻曲库</button><button><b>↗</b>导出记录</button></nav></section><section class="side-section"><div class="side-label">Scene presets</div><div class="presets"><button class="preset" aria-pressed="true"><i class="dot" style="--dot:#d8f36b"></i>夜间电台</button><button class="preset" aria-pressed="false"><i class="dot" style="--dot:#8fb6d9"></i>磁带回响</button><button class="preset" aria-pressed="false"><i class="dot" style="--dot:#f09a61"></i>霓虹车站</button></div></section><section class="card" data-card-tilt><div class="card-inner"><span class="ring"></span><div class="card-copy"><strong>Never Gonna Give You Up</strong><span>Rick Astley / instrument reconstruction</span></div></div></section></aside>
+    <section class="main"><section class="stage"><div class="hero"><div class="eyebrow">Now shaping</div><h1 id="stage-title" data-hover-text="Never Gonna Give You Up">Never Gonna Give You Up</h1><p class="sub">Rick Astley 器乐复刻 · 无人声 · 50 秒</p></div><canvas id="visualizer" class="visualizer"></canvas><pre id="ascii-art" class="ascii">RETRO\nRADIO\n\n▂▅▇▅▂▃▆</pre><div class="meta"><span>ORIGINAL AUDIO SCRIPT</span><span>WEB AUDIO / STEREO</span></div></section><section class="panel"><div class="heading"><h2>Player controls</h2><span id="time-readout" class="status">00:00 / 00:50</span></div><div class="transport"><button id="play-button" class="primary">播放复刻</button><button id="stop-button">停止</button></div><div class="settings"><label>BPM<input type="number" value="113" readonly></label><label>总时长<input type="number" value="50" readonly></label><label>音量<input type="number" value="-6" min="-24" max="0"></label></div></section><section class="panel"><div class="heading"><h2>Signal layers</h2><span class="status">来自真实 looper 音频生成脚本</span></div><div class="track-list"><div class="track-row"><div class="track-meta"><i class="track-dot" style="--track:#d8f36b"></i><div class="track-name"><strong>核心旋律</strong><span>Triangle trigger / MIDI melody</span></div></div><input class="volume" type="range" value="82"><span class="level">82%</span><button class="toggle" aria-pressed="true">启用</button></div><div class="track-row"><div class="track-meta"><i class="track-dot" style="--track:#8fb6d9"></i><div class="track-name"><strong>低频与律动</strong><span>Bass / kick / snare / hat</span></div></div><input class="volume" type="range" value="76"><span class="level">76%</span><button class="toggle" aria-pressed="true">启用</button></div></div><p class="note">真实加载同目录 <code>never-gonna-give-you-up-looper.js</code>，不是占位音频。</p></section></section>
+    <footer class="now"><div class="now-title"><strong>Never Gonna Give You Up</strong><span>Rick Astley / reconstruction</span></div><div class="progress-wrap"><div class="progress-line"><span>0:00</span><span>0:50</span></div><input id="progress-input" class="progress" type="range" min="0" max="50" value="0" step=".1"></div><div class="actions"><button aria-label="上一段">|◀</button><button id="footer-play" class="primary" aria-label="播放">▶</button><button aria-label="下一段">▶|</button></div></footer>
+  </main>
+  <script src="./never-gonna-give-you-up-looper.js"></script>
+  <script>
+    (() => {
+      'use strict';
+      const SONG_DURATION = 50;
+      const state = { isPlaying: false, startedAt: 0, timerId: 0, presetIndex: 0 };
+      const elements = { play: document.querySelector('#play-button'), footerPlay: document.querySelector('#footer-play'), stop: document.querySelector('#stop-button'), status: document.querySelector('#status'), time: document.querySelector('#time-readout'), progress: document.querySelector('#progress-input'), canvas: document.querySelector('#visualizer'), title: document.querySelector('#stage-title'), card: document.querySelector('[data-card-tilt]'), stage: document.querySelector('.stage'), main: document.querySelector('.main') };
+      const presets = Array.from(document.querySelectorAll('.preset'));
+
+      /** 将秒数转换成 mm:ss。 */
+      function formatTime(seconds) { const safeSeconds = Number.isFinite(seconds) ? Math.max(0, Math.floor(seconds)) : 0; return `${String(Math.floor(safeSeconds / 60)).padStart(2, '0')}:${String(safeSeconds % 60).padStart(2, '0')}`; }
+      /** 获取真实复刻音频的播放时间。 */
+      function getElapsed() { return state.isPlaying ? Math.min(SONG_DURATION, (performance.now() - state.startedAt) / 1000) : 0; }
+      /** 同步播放器底部时间和滑块。 */
+      function syncPlayer() { const elapsed = getElapsed(); elements.time.textContent = `${formatTime(elapsed)} / 00:50`; elements.progress.value = elapsed; if (state.isPlaying) window.requestAnimationFrame(syncPlayer); }
+      /** 更新播放按钮和状态。 */
+      function setPlaying(isPlaying) { state.isPlaying = isPlaying; elements.play.textContent = isPlaying ? '播放中' : '播放复刻'; elements.footerPlay.textContent = isPlaying ? 'Ⅱ' : '▶'; }
+      /** 停止真实 looper 音频。 */
+      function stopPlayback() { if (typeof window.stopNeverGonnaGiveYouUp === 'function') window.stopNeverGonnaGiveYouUp(); window.clearTimeout(state.timerId); setPlaying(false); elements.progress.value = 0; elements.time.textContent = '00:00 / 00:50'; elements.status.textContent = '已停止，等待再次播放'; }
+      /** 调用歌曲脚本生成并播放复刻音频。 */
+      function playPlayback() { if (state.isPlaying) { stopPlayback(); return; } if (typeof window.playNeverGonnaGiveYouUp !== 'function') { elements.status.textContent = '歌曲脚本加载失败，请确认同目录文件存在'; return; } elements.status.textContent = '正在生成两条音频轨道，请稍候…'; window.playNeverGonnaGiveYouUp().then(() => { state.startedAt = performance.now(); setPlaying(true); elements.status.textContent = '正在播放 Rick Astley 器乐复刻'; syncPlayer(); state.timerId = window.setTimeout(stopPlayback, SONG_DURATION * 1000 + 120); }).catch((error) => { setPlaying(false); elements.status.textContent = `播放失败：${error.message}`; }); }
+      /** 切换舞台预设颜色。 */
+      function selectPreset(index) { state.presetIndex = index; presets.forEach((preset, presetIndex) => preset.setAttribute('aria-pressed', String(presetIndex === index))); const themes = [{ accent: '#d8f36b', bg: '#101711', glow: '#d8f36b40' }, { accent: '#8fb6d9', bg: '#10151b', glow: '#8fb6d940' }, { accent: '#f09a61', bg: '#1b1410', glow: '#f09a6140' }]; const theme = themes[index]; document.documentElement.style.setProperty('--lime', theme.accent); document.documentElement.style.setProperty('--stage-bg', theme.bg); document.documentElement.style.setProperty('--stage-accent', theme.accent); document.documentElement.style.setProperty('--stage-glow', theme.glow); elements.status.textContent = `已切换场景：${presets[index].textContent.trim()}`; }
+
+      /** 创建可打开、可关闭、可扩展的复刻曲库面板。 */
+      function bindLibrary() { const libraryButton = document.querySelector('.nav button:nth-child(2)'); if (!libraryButton || !elements.main) return; const panel = document.createElement('section'); panel.className = 'library-panel'; panel.hidden = true; panel.innerHTML = '<div class="heading"><h2>复刻曲库</h2><button type="button" data-close-library>关闭</button></div><div class="library-song"><div><strong>Never Gonna Give You Up</strong><small>Rick Astley · 50 秒 · 当前已接入</small></div><button class="primary" type="button" data-library-play>播放</button></div><div class="library-song"><div><strong>下一首歌曲</strong><small>预留入口 · 后续可继续加入 looper 音频</small></div><span class="status">待加入</span></div>'; elements.main.prepend(panel); libraryButton.addEventListener('click', () => { panel.hidden = false; panel.scrollIntoView({ behavior: 'smooth', block: 'start' }); }); panel.querySelector('[data-close-library]').addEventListener('click', () => { panel.hidden = true; }); panel.querySelector('[data-library-play]').addEventListener('click', playPlayback); }
+      /** 绑定作品卡片拖拽切换。 */
+      function bindDraggableCard() { const card = elements.card; if (!card || !window.PointerEvent) return; let startX = 0; let pointerId = 0; card.addEventListener('pointerdown', (event) => { pointerId = event.pointerId; startX = event.clientX; card.setPointerCapture(pointerId); card.classList.add('dragging'); }); card.addEventListener('pointerup', (event) => { if (event.pointerId !== pointerId) return; const deltaX = event.clientX - startX; if (Math.abs(deltaX) > 48) selectPreset((state.presetIndex + (deltaX < 0 ? 1 : 2)) % presets.length); card.classList.remove('dragging'); card.releasePointerCapture(pointerId); }); }
+      /** 绑定标题字符解码效果。 */
+      function bindTextHover() { const title = elements.title; if (!title) return; const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'; title.addEventListener('pointerenter', () => { const original = title.dataset.hoverText; let iteration = 0; const timerId = window.setInterval(() => { title.textContent = original.split('').map((character, index) => character === ' ' ? ' ' : index < iteration ? original[index] : characters[Math.floor(Math.random() * characters.length)]).join(''); iteration += .7; if (iteration >= original.length) { window.clearInterval(timerId); title.textContent = original; } }, 30); }); }
+      /** 绑定舞台 Ripple 点击反馈。 */
+      function bindRipple() { const stage = document.querySelector('.stage'); stage.addEventListener('pointerdown', (event) => { const rect = stage.getBoundingClientRect(); const ripple = document.createElement('span'); ripple.className = 'ripple'; ripple.style.left = `${event.clientX - rect.left}px`; ripple.style.top = `${event.clientY - rect.top}px`; ripple.addEventListener('animationend', () => ripple.remove(), { once: true }); stage.appendChild(ripple); }); }
+      /** 绘制与播放状态同步的频谱条。 */
+      function drawVisualizer(timestamp) { const canvas = elements.canvas; const rect = canvas.getBoundingClientRect(); const ratio = window.devicePixelRatio || 1; const width = Math.max(1, Math.floor(rect.width * ratio)); const height = Math.max(1, Math.floor(rect.height * ratio)); if (canvas.width !== width || canvas.height !== height) { canvas.width = width; canvas.height = height; } const context = canvas.getContext('2d'); context.clearRect(0, 0, width, height); const pulse = state.isPlaying ? (Math.sin(timestamp / 900) + 1) / 2 : .18; const palette = ['#d8f36bad', '#8fb6d9ad', '#f09a61cc']; for (let index = 0; index < 42; index += 1) { const wave = Math.abs(Math.sin(index * .48 + timestamp / 1700)); const barHeight = height * (.035 + wave * (.08 + pulse * .14)); context.fillStyle = palette[index % palette.length]; context.fillRect(index * width / 42, height * .62 - barHeight / 2, Math.max(2, width / 240), barHeight); } window.requestAnimationFrame(drawVisualizer); }
+      elements.play.addEventListener('click', playPlayback); elements.footerPlay.addEventListener('click', playPlayback); elements.stop.addEventListener('click', stopPlayback); presets.forEach((preset, index) => preset.addEventListener('click', () => selectPreset(index))); document.querySelectorAll('.toggle').forEach((button) => button.addEventListener('click', () => { const enabled = button.getAttribute('aria-pressed') !== 'true'; button.setAttribute('aria-pressed', String(enabled)); button.textContent = enabled ? '启用' : '静音'; })); bindLibrary(); bindDraggableCard(); bindTextHover(); bindRipple(); selectPreset(0); window.requestAnimationFrame(drawVisualizer);
+    })();
+  </script>
+  <script>
+    (() => {
+      'use strict';
+      const main = document.querySelector('.main');
+      const stage = document.querySelector('.stage');
+      const presets = Array.from(document.querySelectorAll('.preset'));
+      const libraryButton = document.querySelector('.nav button:nth-child(2)');
+      if (!main || !stage) return;
+
+      /** 将现有播放器内容分成舞台、控制台、分轨和曲库四页。 */
+      function createPages() {
+        const shell = document.createElement('div');
+        shell.className = 'page-shell';
+        const content = Array.from(main.children).filter((item) => !item.classList.contains('library-panel'));
+        content.forEach((item) => { const page = document.createElement('section'); page.className = 'page'; page.appendChild(item); shell.appendChild(page); });
+        main.appendChild(shell);
+        const libraryPage = document.createElement('section'); libraryPage.className = 'page'; shell.appendChild(libraryPage);
+        return shell;
+      }
+
+      /** 创建分页控制并切换当前页面。 */
+      function bindPagination(shell) {
+        const pages = Array.from(shell.querySelectorAll('.page'));
+        const nav = document.createElement('nav');
+        nav.className = 'page-nav';
+        nav.innerHTML = '<button type="button" data-page-prev aria-label="上一页">←</button><div class="page-dots"></div><span class="status" data-page-label>01 / 04</span><button type="button" data-page-next aria-label="下一页">→</button>';
+        const dots = pages.map((page, index) => { const dot = document.createElement('button'); dot.className = 'page-dot'; dot.type = 'button'; dot.setAttribute('aria-label', `第 ${index + 1} 页`); nav.querySelector('.page-dots').appendChild(dot); return dot; });
+        let activeIndex = 0;
+        const showPage = (index) => { activeIndex = Math.max(0, Math.min(pages.length - 1, index)); pages.forEach((page, pageIndex) => page.classList.toggle('is-active', pageIndex === activeIndex)); dots.forEach((dot, dotIndex) => dot.classList.toggle('is-active', dotIndex === activeIndex)); nav.querySelector('[data-page-label]').textContent = `${String(activeIndex + 1).padStart(2, '0')} / ${String(pages.length).padStart(2, '0')}`; };
+        nav.querySelector('[data-page-prev]').addEventListener('click', () => showPage(activeIndex - 1)); nav.querySelector('[data-page-next]').addEventListener('click', () => showPage(activeIndex + 1)); dots.forEach((dot, index) => dot.addEventListener('click', () => showPage(index))); shell.after(nav); showPage(0);
+        return showPage;
+      }
+
+      /** 将曲库按钮绑定到最后一页，并创建后续歌曲占位卡。 */
+      function bindLibraryPage(shell, showPage) {
+        if (!libraryButton) return;
+        const page = shell.querySelector('.page:last-child');
+        const panel = document.createElement('section'); panel.className = 'library-panel'; panel.innerHTML = '<div class="heading"><h2>复刻曲库</h2><span class="status">可继续加入更多歌曲</span></div><div class="library-song"><div><strong>Never Gonna Give You Up</strong><small>Rick Astley · 50 秒 · 已接入 looper</small></div><button class="primary" type="button" data-library-play>播放</button></div><div class="library-song"><div><strong>下一首歌曲</strong><small>添加新的 looper JS 后在这里注册</small></div><span class="status">待加入</span></div>'; page.appendChild(panel);
+        const pages = Array.from(shell.querySelectorAll('.page')); const nav = shell.nextElementSibling; nav.querySelector('.page-dots').innerHTML = ''; pages.forEach((item, index) => { const dot = document.createElement('button'); dot.className = 'page-dot'; dot.type = 'button'; dot.setAttribute('aria-label', `第 ${index + 1} 页`); nav.querySelector('.page-dots').appendChild(dot); });
+        libraryButton.addEventListener('click', () => showPage(pages.length - 1)); panel.querySelector('[data-library-play]').addEventListener('click', () => document.querySelector('#play-button').click());
+      }
+
+      /** 根据预设切换真实视觉主题、风景封面和频谱色相。 */
+      function bindSceneThemes() { const themes = [{ color: '#d8f36b', bg: '#0d1218', image: 'url(https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1600&q=82)', hue: 'none' }, { color: '#8fb6d9', bg: '#111725', image: 'url(https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=1600&q=82)', hue: 'hue-rotate(22deg)' }, { color: '#f09a61', bg: '#1a1110', image: 'url(https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?auto=format&fit=crop&w=1600&q=82)', hue: 'hue-rotate(320deg)' }]; presets.forEach((preset, index) => preset.addEventListener('click', () => { const theme = themes[index]; document.documentElement.style.setProperty('--lime', theme.color); document.documentElement.style.setProperty('--stage-bg', theme.bg); document.querySelector('.stage').style.background = theme.bg; document.querySelector('.card-inner').style.backgroundImage = theme.image; document.querySelector('.visualizer').style.filter = `saturate(1.45) contrast(1.22) ${theme.hue}`; })); }
+
+      const shell = createPages();
+      const showPage = bindPagination(shell);
+      bindLibraryPage(shell, showPage);
+      bindSceneThemes();
+    })();
+  </script>
+  <script>
+    (() => {
+      'use strict';
+      const stage = document.querySelector('.stage');
+      const card = document.querySelector('[data-card-tilt]');
+      const pageShell = document.querySelector('.page-shell');
+      const pageNav = document.querySelector('.page-nav');
+      if (!stage) return;
+
+      /** 绘制真实歌曲 AnalyserNode 的频谱，不再使用固定时间波形。 */
+      function bindAudioSignal() {
+        const canvas = document.createElement('canvas');
+        canvas.className = 'audio-signal';
+        stage.appendChild(canvas);
+        const context = canvas.getContext('2d');
+        const draw = () => {
+          const rect = canvas.getBoundingClientRect();
+          const ratio = window.devicePixelRatio || 1;
+          const width = Math.max(1, Math.floor(rect.width * ratio));
+          const height = Math.max(1, Math.floor(rect.height * ratio));
+          if (canvas.width !== width || canvas.height !== height) { canvas.width = width; canvas.height = height; }
+          context.clearRect(0, 0, width, height);
+          const analyser = typeof window.getNeverGonnaGiveYouUpAnalyser === 'function' ? window.getNeverGonnaGiveYouUpAnalyser() : null;
+          if (analyser) {
+            const values = new Uint8Array(analyser.frequencyBinCount);
+            analyser.getByteFrequencyData(values);
+            const barWidth = width / values.length;
+            values.forEach((value, index) => { const barHeight = height * (value / 255) * .42; context.fillStyle = index % 3 === 0 ? '#d8f36bd9' : index % 3 === 1 ? '#8fb6d9d9' : '#f09a61d9'; context.fillRect(index * barWidth, height * .7 - barHeight, Math.max(2, barWidth - 2), barHeight); });
+          }
+          window.requestAnimationFrame(draw);
+        };
+        window.requestAnimationFrame(draw);
+      }
+
+      /** 为风景卡片增加 Aceternity 风格的透视摆动。 */
+      function bindThreeDCard() {
+        if (!card || !window.PointerEvent) return;
+        const inner = card.querySelector('.card-inner');
+        if (!inner) return;
+        card.addEventListener('pointermove', (event) => { const rect = card.getBoundingClientRect(); const x = (event.clientX - rect.left) / rect.width - .5; const y = (event.clientY - rect.top) / rect.height - .5; card.style.transform = `perspective(900px) rotateX(${y * -10}deg) rotateY(${x * 12}deg) scale(1.015)`; inner.style.transform = `translateZ(18px) rotateX(${y * -2}deg) rotateY(${x * 3}deg)`; });
+        card.addEventListener('pointerleave', () => { card.style.transform = ''; inner.style.transform = ''; });
+      }
+
+      /** 让侧栏入口跳转到对应分页，避免出现无效导航。 */
+      function bindLibraryNavigation() {
+        if (!pageNav || !pageShell) return;
+        const dots = Array.from(pageNav.querySelectorAll('.page-dot'));
+        const navButtons = Array.from(document.querySelectorAll('.nav button'));
+        const jumpTo = (index) => { if (dots[index]) dots[index].click(); };
+        navButtons[0]?.addEventListener('click', () => jumpTo(0));
+        navButtons[1]?.addEventListener('click', () => jumpTo(dots.length - 1));
+        navButtons[2]?.addEventListener('click', () => { jumpTo(2); const status = document.querySelector('#status'); if (status) status.textContent = '导出记录页已预留'; });
+      }
+
+      bindAudioSignal();
+      bindThreeDCard();
+      bindLibraryNavigation();
+    })();
+  </script>
+  <script>
+    (() => {
+      'use strict';
+      const app = document.querySelector('.app');
+      const shell = document.querySelector('.page-shell');
+      if (!app || !shell) return;
+
+      /** 根据当前分页隐藏第一页专属侧栏，避免不同功能区重复出现。 */
+      function syncPageLayout() {
+        const pages = Array.from(shell.querySelectorAll('.page'));
+        const activeIndex = pages.findIndex((page) => page.classList.contains('is-active'));
+        app.classList.toggle('focus-page', activeIndex > 0);
+      }
+
+      const observer = new MutationObserver(syncPageLayout);
+      observer.observe(shell, { subtree: true, attributes: true, attributeFilter: ['class'] });
+      syncPageLayout();
+    })();
+  </script>
+  <script>
+    (() => {
+      'use strict';
+      const app = document.querySelector('.app');
+      const shell = document.querySelector('.page-shell');
+      const sidebar = document.querySelector('.sidebar');
+      const nowPlaying = document.querySelector('.now');
+      if (!app || !shell) return;
+
+      /** 将第一页专属内容和播放器分别放入正确功能页。 */
+      function arrangeSections() {
+        const pages = Array.from(shell.querySelectorAll('.page'));
+        if (sidebar && pages[0]) pages[0].prepend(sidebar);
+        if (nowPlaying && pages[1]) pages[1].append(nowPlaying);
+        app.classList.add('compact-layout');
+      }
+
+      /** 将分轨滑块和静音按钮接入 looper 的真实混音增益。 */
+      function bindRealTrackMix() {
+        const rows = Array.from(document.querySelectorAll('.track-row'));
+        const levels = [0.82, 0.76];
+        const applyMix = () => { if (typeof window.setReconstructionMix === 'function') window.setReconstructionMix(levels[0], levels[1]); const status = document.querySelector('#status'); if (status) status.textContent = '分轨混音已更新，下次播放生效'; };
+        rows.forEach((row, index) => { const slider = row.querySelector('.volume'); const label = row.querySelector('.level'); const button = row.querySelector('.toggle'); if (!slider || !button) return; slider.addEventListener('input', () => { levels[index] = Number(slider.value) / 100; if (label) label.textContent = `${slider.value}%`; applyMix(); }); button.addEventListener('click', () => { const enabled = button.getAttribute('aria-pressed') === 'true'; levels[index] = enabled ? Number(slider.value) / 100 : 0; applyMix(); }); });
+      }
+
+      arrangeSections();
+      bindRealTrackMix();
+    })();
+  </script>
+  <script>
+    (() => {
+      'use strict';
+      const panel = document.querySelector('.page-shell .library-panel');
+      const shell = document.querySelector('.page-shell');
+      const nowPlaying = document.querySelector('.now');
+      const status = document.querySelector('#status');
+      if (!panel || !shell) return;
+
+      /** 将曲库面板替换成可点击的分散歌曲卡片墙。 */
+      function renderSongDeck() {
+        panel.innerHTML = '<div class="heading"><h2>选择歌曲</h2><span class="status">点击封面切换当前歌曲</span></div><div class="song-deck"><span class="song-deck-title">SELECT A SIGNAL / 01</span><button class="song-card" type="button" data-song="Never Gonna Give You Up" data-available="true" style="--rotate:-7deg;--x:-34%;--y:-5%;background-image:url(https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1200&q=85)"><strong>Never Gonna Give You Up</strong><small>Rick Astley · 已接入</small></button><button class="song-card" type="button" data-song="Neon Memory" data-available="false" style="--rotate:5deg;--x:27%;--y:7%;background-image:url(https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?auto=format&fit=crop&w=1200&q=85)"><strong>Neon Memory</strong><small>待导入音频</small></button><button class="song-card" type="button" data-song="Blue Coast" data-available="false" style="--rotate:-2deg;--x:2%;--y:23%;background-image:url(https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1200&q=85)"><strong>Blue Coast</strong><small>待导入音频</small></button></div>';
+        panel.querySelectorAll('.song-card').forEach((card) => card.addEventListener('click', () => { const available = card.dataset.available === 'true'; if (!available) { if (status) status.textContent = `${card.dataset.song} 尚未导入 looper 音频`; return; } const title = document.querySelector('.now-title strong'); if (title) title.textContent = card.dataset.song; if (status) status.textContent = `已选择：${card.dataset.song}，请到播放器页播放`; panel.querySelectorAll('.song-card').forEach((item) => item.classList.toggle('selected', item === card)); }));
+      }
+
+      /** 修正播放器移动位置，确保它只出现在第 2 页。 */
+      function movePlayerToControlPage() { const pages = Array.from(shell.querySelectorAll('.page')); const controlPage = pages[1]; if (nowPlaying && controlPage && !controlPage.contains(nowPlaying)) controlPage.appendChild(nowPlaying); }
+
+      renderSongDeck();
+      movePlayerToControlPage();
+    })();
+  </script>
+  <style>
+    .feature-strip, .queue-panel, .library-tools, .mix-status { display: grid; gap: .7rem; margin-top: .8rem; border: 1px solid var(--line); border-radius: var(--radius); padding: .8rem; background: var(--panel); }
+    .feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; }
+    .feature-cell { border: 1px solid var(--line); border-radius: 6px; padding: .65rem; background: var(--deep); }
+    .feature-cell strong, .feature-cell small { display: block; } .feature-cell small { color: var(--muted); margin-top: .2rem; }
+    .queue-list { display: grid; gap: .35rem; } .queue-item { display: flex; justify-content: space-between; align-items: center; gap: .6rem; border-bottom: 1px solid var(--line); padding: .45rem 0; } .queue-item:last-child { border-bottom: 0; }
+    .queue-actions, .library-tools { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; } .queue-actions button { font-size: .74rem; }
+    .library-tools input { flex: 1 1 180px; min-width: 0; border: 1px solid var(--line); border-radius: 5px; padding: .5rem; background: var(--deep); color: var(--text); }
+    .library-tools label { display: inline-flex; align-items: center; gap: .35rem; border: 1px solid var(--line); border-radius: 5px; padding: .5rem .65rem; color: var(--muted); cursor: pointer; font-size: .74rem; } .library-tools input[type='file'] { display: none; }
+    .song-card.is-favorite { outline: 2px solid var(--lime); outline-offset: 3px; }
+    .mix-meter { height: 5px; overflow: hidden; border-radius: 5px; background: var(--line); } .mix-meter span { display: block; height: 100%; width: var(--mix-width); background: var(--lime); }
+    @media (max-width: 600px) { .feature-grid { grid-template-columns: 1fr; } }
+    .filter-page { display: grid; gap: .8rem; border: 1px solid var(--line); border-radius: var(--radius); padding: 1rem; background: var(--panel); }
+    .filter-toolbar { display: grid; grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(110px, 1fr)); gap: .55rem; }
+    .filter-toolbar input, .filter-toolbar select { min-width: 0; border: 1px solid var(--line); border-radius: 5px; padding: .55rem; background: var(--deep); color: var(--text); }
+    .filter-results { display: grid; gap: .45rem; }
+    .filter-result { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: .7rem; border: 1px solid var(--line); border-radius: 6px; padding: .7rem; background: var(--deep); cursor: pointer; }
+    .filter-result:hover { border-color: var(--lime); }
+    .filter-result strong, .filter-result small { display: block; } .filter-result small { color: var(--muted); margin-top: .15rem; } .filter-empty { padding: 2rem 1rem; text-align: center; color: var(--muted); }
+    .landing-stage { min-height: min(720px, calc(100vh - 120px)) !important; background: #070809 !important; }
+    .landing-stage .hero { top: 50%; right: 1rem; left: 1rem; z-index: 4; max-width: 960px; margin: auto; text-align: center; transform: translateY(-50%); }
+    .landing-stage .hero .eyebrow { display: inline-flex; border: 1px solid #ffffff2b; border-radius: 999px; padding: .55rem 1rem; background: #ffffff0d; color: #d8f36b; }
+    .landing-stage .hero h1 { max-width: 12ch !important; margin: 1.4rem auto 1rem; font-size: clamp(3.2rem, 9vw, 8rem) !important; line-height: .88; letter-spacing: -.06em; text-shadow: 0 8px 30px #000; }
+    .landing-stage .hero .sub { max-width: 600px; margin: auto; color: #c7cec7; font-size: clamp(.9rem, 2vw, 1.2rem); }
+    .landing-actions { display: flex; justify-content: center; flex-wrap: wrap; gap: .7rem; margin-top: 2rem; }
+    .landing-actions button { min-width: 150px; border-radius: 999px; padding: .8rem 1.1rem; }
+    .landing-pixels { position: absolute; z-index: 1; inset: 0; width: 100%; height: 100%; }
+    .landing-stage .visualizer, .landing-stage .audio-signal { display: none; }
+    .page-nav { display: none !important; }
+    .camera-mini { display: block; margin: .8rem auto 0; border: 0; background: transparent; color: #aeb8ae; font-size: .72rem; }
+    .camera-mini:hover { color: var(--lime); }
+    @media (max-width: 600px) { .landing-stage { min-height: 620px !important; } .landing-stage .hero h1 { font-size: clamp(2.7rem, 13vw, 4.8rem) !important; } }
+    @media (max-width: 650px) { .filter-toolbar { grid-template-columns: 1fr 1fr; } .filter-toolbar input { grid-column: 1 / -1; } .filter-result { grid-template-columns: 1fr auto; } .filter-result .status { display: none; } }
+  </style>
+  <script>
+    (() => {
+      'use strict';
+      const shell = document.querySelector('.page-shell');
+      const status = document.querySelector('#status');
+      if (!shell) return;
+      const pages = Array.from(shell.querySelectorAll('.page'));
+      const getPage = (index) => pages[index];
+
+      /** 在入口页增加真实的当前状态概览。 */
+      function addHomeSummary() {
+        const stage = getPage(0)?.querySelector('.stage');
+        if (!stage || stage.querySelector('.feature-strip')) return;
+        const strip = document.createElement('section'); strip.className = 'feature-strip'; strip.innerHTML = '<div class="heading"><strong>Listening snapshot</strong><span class="status">当前工作区</span></div><div class="feature-grid"><div class="feature-cell"><strong>01</strong><small>已选歌曲</small></div><div class="feature-cell"><strong>50s</strong><small>当前时长</small></div><div class="feature-cell"><strong>02</strong><small>独立分轨</small></div></div>'; stage.appendChild(strip);
+      }
+
+      /** 在播放器页提供队列、收藏、循环和视觉强度控制。 */
+      function addPlayerTools() {
+        const page = getPage(1); if (!page || page.querySelector('.queue-panel')) return;
+        const panel = document.createElement('section'); panel.className = 'queue-panel'; panel.innerHTML = '<div class="heading"><strong>Now playing tools</strong><span class="status" data-queue-count>队列 1 首</span></div><div class="queue-list" data-queue-list><div class="queue-item"><span>Never Gonna Give You Up</span><small>当前曲目</small></div></div><div class="queue-actions"><button type="button" data-favorite>♡ 收藏</button><button type="button" data-repeat>↻ 单曲循环：关</button><button type="button" data-shuffle>⤨ 随机：关</button><label class="status">视觉强度 <input data-visual-strength type="range" min="20" max="100" value="60"></label></div>'; page.appendChild(panel);
+        const favoriteButton = panel.querySelector('[data-favorite]'); const repeatButton = panel.querySelector('[data-repeat]'); const shuffleButton = panel.querySelector('[data-shuffle]'); const visualInput = panel.querySelector('[data-visual-strength]');
+        favoriteButton.addEventListener('click', () => { const active = favoriteButton.dataset.active === 'true'; favoriteButton.dataset.active = String(!active); favoriteButton.textContent = active ? '♡ 收藏' : '♥ 已收藏'; localStorage.setItem('retro-favorite', String(!active)); });
+        repeatButton.addEventListener('click', () => { const active = repeatButton.dataset.active === 'true'; repeatButton.dataset.active = String(!active); repeatButton.textContent = active ? '↻ 单曲循环：关' : '↻ 单曲循环：开'; });
+        shuffleButton.addEventListener('click', () => { const active = shuffleButton.dataset.active === 'true'; shuffleButton.dataset.active = String(!active); shuffleButton.textContent = active ? '⤨ 随机：关' : '⤨ 随机：开'; });
+        visualInput.addEventListener('input', () => { const signal = document.querySelector('.audio-signal'); if (signal) signal.style.opacity = String(Number(visualInput.value) / 100); if (status) status.textContent = `视觉强度 ${visualInput.value}%`; });
+      }
+
+      /** 给曲库增加搜索、收藏过滤和本地音频导入入口。 */
+      function addLibraryTools() {
+        const panel = document.querySelector('.library-panel'); if (!panel || panel.querySelector('.library-tools')) return;
+        const tools = document.createElement('div'); tools.className = 'library-tools'; tools.innerHTML = '<input data-song-search type="search" placeholder="搜索歌曲名称"><button type="button" data-favorites-filter>只看收藏</button><label>导入音频<input data-audio-import type="file" accept="audio/*" multiple></label>'; panel.insertBefore(tools, panel.querySelector('.song-deck'));
+        const search = tools.querySelector('[data-song-search]'); const favoriteFilter = tools.querySelector('[data-favorites-filter]'); const importInput = tools.querySelector('[data-audio-import]'); let onlyFavorites = false;
+        const filterCards = () => { const query = search.value.trim().toLowerCase(); panel.querySelectorAll('.song-card').forEach((card) => { const matchesText = card.dataset.song.toLowerCase().includes(query); const matchesFavorite = !onlyFavorites || card.classList.contains('is-favorite'); card.hidden = !matchesText || !matchesFavorite; }); };
+        search.addEventListener('input', filterCards); favoriteFilter.addEventListener('click', () => { onlyFavorites = !onlyFavorites; favoriteFilter.textContent = onlyFavorites ? '显示全部' : '只看收藏'; filterCards(); }); importInput.addEventListener('change', () => { const count = importInput.files.length; if (status) status.textContent = count ? `已选择 ${count} 个音频文件，等待注册到曲库` : '未选择音频文件'; });
+        panel.querySelectorAll('.song-card').forEach((card) => { const favorite = document.createElement('span'); favorite.className = 'status'; favorite.textContent = card.dataset.available === 'true' ? '可播放' : '待导入'; card.appendChild(favorite); card.addEventListener('dblclick', () => { card.classList.toggle('is-favorite'); filterCards(); }); });
+      }
+
+      /** 在分轨页补充混音总线状态。 */
+      function addMixStatus() { const page = getPage(2); if (!page || page.querySelector('.mix-status')) return; const panel = document.createElement('section'); panel.className = 'mix-status'; panel.innerHTML = '<div class="heading"><strong>Mix bus</strong><span class="status">AudioBuffer 混音</span></div><span class="status">旋律总线 / 84%</span><div class="mix-meter" style="--mix-width:84%"><span></span></div><span class="status">律动总线 / 76%</span><div class="mix-meter" style="--mix-width:76%"><span></span></div>'; page.appendChild(panel); }
+
+      addHomeSummary(); addPlayerTools(); addLibraryTools(); addMixStatus();
+    })();
+  </script>
+  <script>
+    (() => {
+      'use strict';
+      const shell = document.querySelector('.page-shell');
+      const libraryPanel = document.querySelector('.library-panel');
+      const status = document.querySelector('#status');
+      if (!shell || !libraryPanel) return;
+      const catalog = [
+        { title: 'Never Gonna Give You Up', artist: 'Rick Astley', type: '旋律 + 律动', state: '已接入', duration: 50, date: 3 },
+        { title: 'Neon Memory', artist: 'Retro Lab', type: '旋律', state: '待导入', duration: 50, date: 2 },
+        { title: 'Blue Coast', artist: 'Retro Lab', type: '律动', state: '待导入', duration: 50, date: 1 }
+      ];
+
+      /** 将筛选页面插入分页结构，并提供返回与结果选择。 */
+      function createFilterPage() {
+        const page = document.createElement('section'); page.className = 'page'; page.innerHTML = '<section class="filter-page"><div class="heading"><div><div class="eyebrow">BROWSE / FILTER</div><h2>筛选歌曲</h2></div><span class="status" data-filter-count>3 首结果</span></div><div class="filter-toolbar"><input data-filter-query type="search" placeholder="搜索歌曲、艺术家"><select data-filter-state><option value="all">全部状态</option><option value="ready">已接入</option><option value="pending">待导入</option></select><select data-filter-type><option value="all">全部轨道</option><option value="旋律">旋律</option><option value="律动">律动</option></select><select data-filter-sort><option value="date">最近添加</option><option value="title">名称排序</option><option value="duration">时长排序</option></select></div><div class="filter-results" data-filter-results></div><button type="button" data-filter-back>返回选歌</button></section>'; shell.appendChild(page); return page;
+      }
+
+      /** 根据搜索词、状态、轨道类型和排序条件渲染结果。 */
+      function bindFilterControls(page) {
+        const queryInput = page.querySelector('[data-filter-query]'); const stateSelect = page.querySelector('[data-filter-state]'); const typeSelect = page.querySelector('[data-filter-type]'); const sortSelect = page.querySelector('[data-filter-sort]'); const resultList = page.querySelector('[data-filter-results]'); const countLabel = page.querySelector('[data-filter-count]');
+        const render = () => { const query = queryInput.value.trim().toLowerCase(); const stateValue = stateSelect.value; const typeValue = typeSelect.value; const sortValue = sortSelect.value; const results = catalog.filter((item) => item.title.toLowerCase().includes(query) || item.artist.toLowerCase().includes(query)).filter((item) => stateValue === 'all' || (stateValue === 'ready' ? item.state === '已接入' : item.state === '待导入')).filter((item) => typeValue === 'all' || item.type.includes(typeValue)).sort((a, b) => sortValue === 'title' ? a.title.localeCompare(b.title) : sortValue === 'duration' ? a.duration - b.duration : b.date - a.date); countLabel.textContent = `${results.length} 首结果`; resultList.innerHTML = results.length ? results.map((item) => `<button class="filter-result" type="button" data-filter-song="${item.title}"><span><strong>${item.title}</strong><small>${item.artist} · ${item.type}</small></span><span class="status">${item.state}</span><span class="status">${item.duration}s</span></button>`).join('') : '<div class="filter-empty">没有匹配的歌曲</div>'; resultList.querySelectorAll('[data-filter-song]').forEach((button) => button.addEventListener('click', () => { const selectedTitle = button.dataset.filterSong; if (status) status.textContent = `${selectedTitle} 已选中，请到播放器页播放`; const playerDot = document.querySelector('.page-dot'); if (playerDot) playerDot.click(); })); };
+        [queryInput, stateSelect, typeSelect, sortSelect].forEach((control) => control.addEventListener('input', render)); render();
+      }
+
+      /** 为曲库页增加独立筛选页入口。 */
+      function bindFilterEntry(page) { const tools = libraryPanel.querySelector('.library-tools'); if (!tools) return; const button = document.createElement('button'); button.type = 'button'; button.textContent = '打开筛选页'; tools.appendChild(button); const showPage = () => { shell.querySelectorAll('.page').forEach((item) => item.classList.remove('is-active')); page.classList.add('is-active'); const app = document.querySelector('.app'); app.classList.add('focus-page'); }; button.addEventListener('click', showPage); page.querySelector('[data-filter-back]').addEventListener('click', () => { const pages = Array.from(shell.querySelectorAll('.page')); pages[3]?.classList.add('is-active'); page.classList.remove('is-active'); }); }
+
+      const filterPage = createFilterPage(); bindFilterControls(filterPage); bindFilterEntry(filterPage);
+    })();
+  </script>
+  <script>
+    (() => {
+      'use strict';
+      const title = document.querySelector('#stage-title');
+      const hero = document.querySelector('.page-shell .page:first-child .hero');
+      if (!title || !hero) return;
+
+      /** 将第 1 页设置为项目标题封面，歌曲名称留给选歌和播放器页面。 */
+      function setProjectTitle() {
+        title.textContent = 'Retro Reconstruction Player';
+        title.dataset.hoverText = 'Retro Reconstruction Player';
+        const eyebrow = hero.querySelector('.eyebrow');
+        const subtitle = hero.querySelector('.sub');
+        if (eyebrow) eyebrow.textContent = 'ORIGINAL AUDIO WORKSPACE';
+        if (subtitle) subtitle.textContent = '浏览器 looper 音频工作台 · 选择歌曲后开始播放';
+      }
+
+      setProjectTitle();
+    })();
+  </script>
+  <script>
+    (() => {
+      'use strict';
+      const stage = document.querySelector('.page-shell .page:first-child .stage');
+      const hero = stage?.querySelector('.hero');
+      if (!stage || !hero) return;
+      stage.classList.add('landing-stage');
+      hero.innerHTML = '<div class="eyebrow">ORIGINAL AUDIO WORKSPACE →</div><h1>Retro Reconstruction Player</h1><p class="sub">把 looper、视觉和你的歌曲库放进一个浏览器工作台。</p><div class="landing-actions"><button class="primary" type="button" data-open-library>探索歌曲库 →</button><button type="button" data-start-webcam>启动像素摄像头</button></div>';
+      const canvas = document.createElement('canvas'); canvas.className = 'landing-pixels'; stage.prepend(canvas);
+      const context = canvas.getContext('2d'); const video = document.createElement('video'); video.autoplay = true; video.muted = true; video.playsInline = true; video.style.display = 'none'; document.body.appendChild(video); const sampleCanvas = document.createElement('canvas'); const sampleContext = sampleCanvas.getContext('2d'); let stream = null; let mouseX = 0; let mouseY = 0;
+
+      /** 绘制带有立体挤出感的像素方块背景。 */
+      function drawPixelHero(timestamp) { const rect = canvas.getBoundingClientRect(); const ratio = window.devicePixelRatio || 1; const width = Math.max(1, Math.floor(rect.width * ratio)); const height = Math.max(1, Math.floor(rect.height * ratio)); if (canvas.width !== width || canvas.height !== height) { canvas.width = width; canvas.height = height; } const columns = 34; const rows = 22; const cellWidth = width / columns; const cellHeight = height / rows; let pixels = null; if (video.readyState >= 2) { sampleCanvas.width = columns; sampleCanvas.height = rows; sampleContext.drawImage(video, 0, 0, columns, rows); pixels = sampleContext.getImageData(0, 0, columns, rows).data; } context.fillStyle = '#070809'; context.fillRect(0, 0, width, height); for (let row = 0; row < rows; row += 1) { for (let column = 0; column < columns; column += 1) { const index = (row * columns + column) * 4; const source = pixels ? (pixels[index] + pixels[index + 1] + pixels[index + 2]) / 3 / 255 : (Math.sin(column * .42 + timestamp / 1800) + Math.cos(row * .37 - timestamp / 2300) + 2) / 4; const distance = Math.hypot(column - columns / 2, row - rows / 2) / 18; const lift = Math.max(0, 1 - distance) * source * 24; const x = column * cellWidth + mouseX * (row / rows); const y = row * cellHeight - lift + mouseY * (column / columns); const gap = Math.max(2, cellWidth * .08); const blockWidth = Math.max(2, cellWidth - gap); const blockHeight = Math.max(2, cellHeight - gap); const tone = Math.floor(24 + source * 58); context.fillStyle = `rgb(${tone + 10}, ${tone + 10}, ${tone + 8})`; context.fillRect(x, y, blockWidth, blockHeight); context.fillStyle = `rgb(${Math.max(8, tone - 14)}, ${Math.max(8, tone - 12)}, ${Math.max(8, tone - 10)})`; context.fillRect(x + blockWidth * .16, y + blockHeight, blockWidth * .68, lift + 5); } } window.requestAnimationFrame(drawPixelHero); }
+
+      /** 启动摄像头并切换到真实像素采样；拒绝权限时保留程序化背景。 */
+      async function startWebcam() { try { stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false }); video.srcObject = stream; document.querySelector('[data-start-webcam]').textContent = '摄像头像素已启动'; } catch (error) { document.querySelector('[data-start-webcam]').textContent = '使用程序化像素'; } }
+
+      /** 将鼠标位置转换为背景方块的轻微视差偏移。 */
+      function bindPixelParallax() { stage.addEventListener('pointermove', (event) => { const rect = stage.getBoundingClientRect(); mouseX = (event.clientX - rect.left - rect.width / 2) * .08; mouseY = (event.clientY - rect.top - rect.height / 2) * .04; }); stage.addEventListener('pointerleave', () => { mouseX = 0; mouseY = 0; }); }
+
+      document.querySelector('[data-start-webcam]').addEventListener('click', startWebcam); document.querySelector('[data-open-library]').addEventListener('click', () => { const filterButton = document.querySelector('.library-tools button:last-of-type'); if (filterButton) filterButton.click(); else document.querySelector('.page-dot:nth-child(4)')?.click(); }); bindPixelParallax(); window.requestAnimationFrame(drawPixelHero);
+    })();
+  </script>
+  <script>
+    (() => {
+      'use strict';
+      const stage = document.querySelector('.landing-stage');
+      const actions = stage?.querySelector('.landing-actions');
+      const canvas = stage?.querySelector('.landing-pixels');
+      const shell = document.querySelector('.page-shell');
+      if (!stage || !actions || !canvas || !shell) return;
+      const oldCameraButton = actions.querySelector('[data-start-webcam]');
+      const playerButton = oldCameraButton?.cloneNode(true);
+      let cameraStream = null;
+      let cameraVideo = null;
+
+      /** 直接进入歌曲播放器页，避免依赖隐藏分页箭头。 */
+      function openPlayerPage() { const pages = Array.from(shell.querySelectorAll('.page')); pages.forEach((page) => page.classList.remove('is-active')); pages[1]?.classList.add('is-active'); document.querySelector('.app')?.classList.add('focus-page'); }
+
+      /** 直接进入歌曲筛选页，按钮点击后立即产生页面变化。 */
+      function openFilterPage() { const filterPage = document.querySelector('.filter-page')?.closest('.page'); if (!filterPage) return; shell.querySelectorAll('.page').forEach((page) => page.classList.remove('is-active')); filterPage.classList.add('is-active'); document.querySelector('.app')?.classList.add('focus-page'); }
+
+      /** 读取 webcam 小网格中的真实 RGB 像素并绘制彩色方块。 */
+      function drawCameraPixels() { if (!cameraVideo || cameraVideo.readyState < 2) { window.requestAnimationFrame(drawCameraPixels); return; } const sampleCanvas = document.createElement('canvas'); sampleCanvas.width = 34; sampleCanvas.height = 22; const sampleContext = sampleCanvas.getContext('2d'); const outputContext = canvas.getContext('2d'); const draw = () => { sampleContext.save(); sampleContext.translate(34, 0); sampleContext.scale(-1, 1); sampleContext.drawImage(cameraVideo, 0, 0, 34, 22); sampleContext.restore(); const pixels = sampleContext.getImageData(0, 0, 34, 22).data; const rect = canvas.getBoundingClientRect(); const ratio = window.devicePixelRatio || 1; const width = Math.max(1, Math.floor(rect.width * ratio)); const height = Math.max(1, Math.floor(rect.height * ratio)); if (canvas.width !== width || canvas.height !== height) { canvas.width = width; canvas.height = height; } const cellWidth = width / 34; const cellHeight = height / 22; outputContext.fillStyle = '#070809'; outputContext.fillRect(0, 0, width, height); for (let row = 0; row < 22; row += 1) for (let column = 0; column < 34; column += 1) { const index = (row * 34 + column) * 4; const red = Math.floor(pixels[index] * .62); const green = Math.floor(pixels[index + 1] * .62); const blue = Math.floor(pixels[index + 2] * .62); const x = column * cellWidth; const y = row * cellHeight; const gap = Math.max(2, cellWidth * .08); outputContext.fillStyle = `rgb(${red}, ${green}, ${blue})`; outputContext.fillRect(x, y, cellWidth - gap, cellHeight - gap); } window.requestAnimationFrame(draw); }; window.requestAnimationFrame(draw); }
+
+      /** 请求摄像头权限并切换到真实彩色像素画面，失败时给出明确状态。 */
+      async function enableCamera() { const button = document.querySelector('.camera-mini'); if (!navigator.mediaDevices?.getUserMedia) { button.textContent = '当前浏览器不支持 webcam'; return; } try { cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false }); cameraVideo = document.createElement('video'); cameraVideo.autoplay = true; cameraVideo.muted = true; cameraVideo.playsInline = true; cameraVideo.srcObject = cameraStream; await cameraVideo.play(); button.textContent = 'webcam 像素已启动'; drawCameraPixels(); } catch (error) { button.textContent = 'webcam 未授权，使用像素背景'; } }
+
+      if (oldCameraButton && playerButton) { playerButton.textContent = '进入播放器'; playerButton.removeAttribute('data-start-webcam'); oldCameraButton.replaceWith(playerButton); playerButton.addEventListener('click', openPlayerPage); }
+      actions.querySelector('[data-open-library]')?.addEventListener('click', openFilterPage);
+      const cameraButton = document.createElement('button'); cameraButton.className = 'camera-mini'; cameraButton.type = 'button'; cameraButton.textContent = '启用 webcam 像素'; cameraButton.addEventListener('click', enableCamera); actions.after(cameraButton);
+    })();
+  </script>
+  <style>
+    /* 播放器产品化视觉：将工程调试面板收起，突出选歌、播放和封面。 */
+    :root { --glow-lime: #d8f36b; --glow-blue: #8fb6d9; }
+    body { overflow-x: hidden; }
+    .workspace-tabs { display: flex; gap: .35rem; align-items: center; overflow-x: auto; padding: .35rem 0 .7rem; scrollbar-width: none; }
+    .workspace-tabs::-webkit-scrollbar { display: none; }
+    .workspace-tab { flex: 0 0 auto; border: 1px solid var(--line); border-radius: 999px; padding: .48rem .8rem; background: transparent; color: var(--muted); font-size: .76rem; cursor: pointer; }
+    .workspace-tab.is-active, .workspace-tab:hover { border-color: var(--glow-lime); color: var(--glow-lime); box-shadow: 0 0 18px #d8f36b24; }
+    .player-page-title { display: grid; gap: .25rem; margin: 0 0 .9rem; }
+    .player-page-title .eyebrow { color: var(--glow-lime); letter-spacing: .16em; font-size: .68rem; }
+    .player-page-title h2 { margin: 0; font-size: clamp(1.8rem, 7vw, 3.4rem); line-height: .96; }
+    .visual-deck { position: relative; min-height: 250px; margin: 0 0 1rem; overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: #080a0b; background-image: radial-gradient(#ffffff17 1px, transparent 1px), linear-gradient(135deg, #101d20, #070809 55%, #18210f); background-size: 16px 16px, auto; }
+    .visual-deck::after { position: absolute; inset: 0; content: ''; pointer-events: none; background: linear-gradient(115deg, transparent 20%, #d8f36b12 48%, transparent 72%); transform: translateX(-70%); animation: deckSweep 8s ease-in-out infinite; }
+    .visual-card { position: absolute; width: min(48%, 250px); aspect-ratio: 1.45; overflow: hidden; border: 1px solid #ffffff33; border-radius: 10px; background-position: center; background-size: cover; box-shadow: 0 20px 40px #000b, 0 0 28px #d8f36b1a; color: #fff; cursor: pointer; transform: translate(var(--card-x), var(--card-y)) rotate(var(--card-r)); transition: transform .5s cubic-bezier(.2,.8,.2,1), filter .5s, border-color .5s; }
+    .visual-card::before { position: absolute; inset: 0; content: ''; background: linear-gradient(180deg, transparent 40%, #030404d9); }
+    .visual-card span { position: absolute; right: .7rem; bottom: .6rem; left: .7rem; text-align: left; font-size: .78rem; font-weight: 700; }
+    .visual-card:hover, .visual-card.is-selected { z-index: 4; border-color: var(--glow-lime); filter: saturate(1.25) brightness(1.08); transform: translate(var(--card-hover-x), var(--card-hover-y)) rotate(0deg) scale(1.04); }
+    .visual-card:nth-child(1) { --card-x: 5%; --card-y: 15%; --card-r: -7deg; --card-hover-x: 5%; --card-hover-y: 12%; background-image: url('https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1200&q=85'); }
+    .visual-card:nth-child(2) { --card-x: 39%; --card-y: 4%; --card-r: 5deg; --card-hover-x: 38%; --card-hover-y: 2%; background-image: url('https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?auto=format&fit=crop&w=1200&q=85'); }
+    .visual-card:nth-child(3) { --card-x: 22%; --card-y: 42%; --card-r: -2deg; --card-hover-x: 22%; --card-hover-y: 40%; background-image: url('https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1200&q=85'); }
+    .visual-card:nth-child(4) { --card-x: 62%; --card-y: 34%; --card-r: 8deg; --card-hover-x: 61%; --card-hover-y: 32%; background-image: url('https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=1200&q=85'); }
+    .filter-page, .library-panel, .visual-deck, .panel, .now, .queue-panel { background-image: radial-gradient(#ffffff0d 1px, transparent 1px); background-size: 15px 15px; box-shadow: 0 0 0 1px #d8f36b0b, 0 0 24px #d8f36b08; }
+    .filter-page:hover, .library-panel:hover, .visual-deck:hover, .panel:hover, .now:hover, .queue-panel:hover { box-shadow: 0 0 0 1px #d8f36b2e, 0 0 28px #d8f36b12; }
+    .page.is-active { animation: pageIn .35s ease both; }
+    @keyframes pageIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes deckSweep { 0%, 100% { transform: translateX(-70%); opacity: 0; } 35%, 65% { transform: translateX(70%); opacity: 1; } }
+    @media (max-width: 600px) { .visual-deck { min-height: 230px; } .visual-card { width: 52%; } .visual-card:nth-child(4) { display: none; } .visual-card:nth-child(3) { --card-x: 25%; --card-y: 45%; } }
+  </style>
+  <script>
+    (() => {
+      'use strict';
+      const shell = document.querySelector('.page-shell');
+      const topbar = document.querySelector('.topbar');
+      if (!shell || !topbar) return;
+      const pages = Array.from(shell.querySelectorAll('.page'));
+      const filterPage = document.querySelector('.filter-page')?.closest('.page');
+      const playerPage = pages[1];
+
+      /** 切换播放器工作区页面。
+       * 入参：targetPage 目标页面节点。
+       * 返回值：无；目标页面不存在时不执行任何操作。
+       */
+      function showWorkspace(targetPage) {
+        if (!targetPage) return;
+        const allPages = Array.from(shell.querySelectorAll('.page'));
+        allPages.forEach((page) => page.classList.toggle('is-active', page === targetPage));
+        document.querySelectorAll('.workspace-tab').forEach((tab) => tab.classList.toggle('is-active', tab.dataset.target === targetPage.dataset.workspace));
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      /** 创建顶部工作区标签。
+       * 入参：无。
+       * 返回值：无；重复初始化时直接返回。
+       */
+      function createWorkspaceTabs() {
+        if (document.querySelector('.workspace-tabs')) return;
+        const tabs = document.createElement('nav');
+        tabs.className = 'workspace-tabs';
+        tabs.setAttribute('aria-label', '播放器工作区');
+        const items = [{ label: 'INTRO', page: pages[0] }, { label: 'PLAYER', page: playerPage }, { label: 'LIBRARY', page: filterPage }];
+        items.forEach((item) => {
+          if (!item.page) return;
+          item.page.dataset.workspace = item.label;
+          const button = document.createElement('button');
+          button.className = 'workspace-tab';
+          button.type = 'button';
+          button.dataset.target = item.label;
+          button.textContent = item.label;
+          button.addEventListener('click', () => showWorkspace(item.page));
+          tabs.appendChild(button);
+        });
+        topbar.after(tabs);
+        const activePage = pages.find((page) => page.classList.contains('is-active')) || pages[0];
+        showWorkspace(activePage);
+      }
+
+      /** 在播放器页插入封面视觉墙。
+       * 入参：无。
+       * 返回值：无；播放器页不存在时不插入。
+       */
+      function createVisualDeck() {
+        if (!playerPage || playerPage.querySelector('.visual-deck')) return;
+        const stage = playerPage.querySelector('.stage');
+        if (!stage) return;
+        const title = document.createElement('div');
+        title.className = 'player-page-title';
+        title.innerHTML = '<span class="eyebrow">PLAYER / NOW PLAYING</span><h2>把音乐放进画面。</h2>';
+        const deck = document.createElement('section');
+        deck.className = 'visual-deck';
+        deck.setAttribute('aria-label', '歌曲视觉封面');
+        deck.innerHTML = '<button class="visual-card" type="button" data-visual-song="Never Gonna Give You Up"><span>Never Gonna Give You Up · Rick Astley</span></button><button class="visual-card" type="button" data-visual-song="Neon Memory"><span>Neon Memory · 待导入</span></button><button class="visual-card" type="button" data-visual-song="Blue Coast"><span>Blue Coast · 待导入</span></button><button class="visual-card" type="button" data-visual-song="Night Drive"><span>Night Drive · 待导入</span></button>';
+        stage.after(title, deck);
+        const status = document.querySelector('#status');
+        deck.querySelectorAll('.visual-card').forEach((card, index) => card.addEventListener('click', () => {
+          deck.querySelectorAll('.visual-card').forEach((item) => item.classList.remove('is-selected'));
+          card.classList.add('is-selected');
+          if (status) status.textContent = index === 0 ? 'Never Gonna Give You Up 已选中' : `${card.dataset.visualSong} 尚未接入音频`;
+        }));
+        deck.querySelector('.visual-card')?.classList.add('is-selected');
+      }
+
+      /** 隐藏面向开发者的工程调试区。
+       * 入参：无。
+       * 返回值：无；音频生成脚本仍然保留，不修改播放逻辑。
+       */
+      function simplifyPlayerUi() {
+        document.querySelectorAll('.track-list, .mix-status, .feature-strip').forEach((element) => { element.hidden = true; });
+        document.querySelectorAll('.panel').forEach((panel) => {
+          if (panel.querySelector('.track-list')) panel.hidden = true;
+        });
+        const subtitle = topbar.querySelector('.sub');
+        if (subtitle) subtitle.textContent = '选择歌曲 · 播放 · 沉浸试听';
+        const reference = topbar.querySelector('a');
+        if (reference) reference.textContent = 'Mineradio 视觉参考 ↗';
+      }
+
+      createWorkspaceTabs();
+      createVisualDeck();
+      simplifyPlayerUi();
+    })();
+  </script>
+  <style>
+    .landing-density-canvas { position: absolute; z-index: 2; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  </style>
+  <script>
+    (() => {
+      'use strict';
+      const stage = document.querySelector('.landing-stage');
+      if (!stage || stage.querySelector('.landing-density-canvas')) return;
+      const canvas = document.createElement('canvas');
+      canvas.className = 'landing-density-canvas';
+      stage.appendChild(canvas);
+      const context = canvas.getContext('2d');
+      const sampleCanvas = document.createElement('canvas');
+      sampleCanvas.width = 72;
+      sampleCanvas.height = 44;
+      const sampleContext = sampleCanvas.getContext('2d');
+      const columns = 72;
+      const rows = 44;
+
+      /** 绘制高密度首屏像素背景。
+       * 入参：timestamp 浏览器动画时间戳。
+       * 返回值：无；画布尺寸异常时自动重新计算。
+       */
+      function drawDensePixels(timestamp) {
+        const bounds = canvas.getBoundingClientRect();
+        const ratio = window.devicePixelRatio || 1;
+        const width = Math.max(1, Math.floor(bounds.width * ratio));
+        const height = Math.max(1, Math.floor(bounds.height * ratio));
+        if (canvas.width !== width || canvas.height !== height) { canvas.width = width; canvas.height = height; }
+        const video = Array.from(document.querySelectorAll('video')).find((item) => item.srcObject && item.readyState >= 2);
+        let cameraPixels = null;
+        if (video) { sampleContext.save(); sampleContext.translate(columns, 0); sampleContext.scale(-1, 1); sampleContext.drawImage(video, 0, 0, columns, rows); sampleContext.restore(); cameraPixels = sampleContext.getImageData(0, 0, columns, rows).data; }
+        const cellWidth = width / columns;
+        const cellHeight = height / rows;
+        context.fillStyle = '#050708';
+        context.fillRect(0, 0, width, height);
+        for (let row = 0; row < rows; row += 1) {
+          for (let column = 0; column < columns; column += 1) {
+            const index = (row * columns + column) * 4;
+            const wave = (Math.sin(column * .22 + timestamp / 1800) + Math.cos(row * .3 - timestamp / 2200) + 2) / 4;
+            const red = cameraPixels ? cameraPixels[index] * .62 : 20 + wave * 48;
+            const green = cameraPixels ? cameraPixels[index + 1] * .62 : 27 + wave * 58;
+            const blue = cameraPixels ? cameraPixels[index + 2] * .62 : 34 + wave * 72;
+            const x = column * cellWidth;
+            const y = row * cellHeight;
+            const gap = Math.max(1, cellWidth * .035);
+            context.fillStyle = `rgb(${Math.floor(red)}, ${Math.floor(green)}, ${Math.floor(blue)})`;
+            context.fillRect(x, y, Math.max(1, cellWidth - gap), Math.max(1, cellHeight - gap));
+          }
+        }
+        window.requestAnimationFrame(drawDensePixels);
+      }
+
+      window.requestAnimationFrame(drawDensePixels);
+    })();
+  </script>
+  <style>
+    .poster-page { position: relative; min-height: min(820px, calc(100vh - 120px)); overflow: hidden; border: 1px solid #ffffff20; border-radius: 16px; background: #070809; isolation: isolate; }
+    .poster-page::before { position: absolute; inset: 0; z-index: -2; content: ''; background: radial-gradient(circle at 50% 35%, #d8f36b18, transparent 34%), linear-gradient(145deg, #131711, #070809 58%, #20251a); }
+    .poster-page::after { position: absolute; inset: 0; z-index: 5; content: ''; pointer-events: none; background: linear-gradient(115deg, transparent 20%, #ffffff13 48%, transparent 76%); transform: translateX(-120%); animation: posterLight 7s ease-in-out infinite; }
+    .poster-collage { position: absolute; inset: 5% 8%; z-index: 1; transform: rotate(-2deg); animation: posterFloat 8s ease-in-out infinite; }
+    .poster-layer { position: absolute; overflow: hidden; border: 7px solid #111313; box-shadow: 0 22px 35px #000b; background: #151817; }
+    .poster-layer img { display: block; width: 100%; height: 100%; object-fit: cover; filter: saturate(1.08) contrast(1.06); }
+    .poster-layer.one { top: 0; left: 2%; width: 31%; height: 35%; transform: rotate(-6deg); }
+    .poster-layer.two { top: 4%; right: 1%; width: 31%; height: 37%; transform: rotate(6deg); }
+    .poster-layer.three { bottom: 3%; left: 3%; width: 30%; height: 36%; transform: rotate(5deg); }
+    .poster-layer.four { right: 2%; bottom: 0; width: 32%; height: 35%; transform: rotate(-5deg); }
+    .poster-layer.center { top: 15%; left: 24%; z-index: 3; width: 52%; height: 62%; transform: rotate(1deg); border-color: #16191a; }
+    .poster-layer.center::after { position: absolute; inset: 0; content: ''; background: linear-gradient(145deg, #d8f36b30, transparent 45%, #9b8cff24); mix-blend-mode: screen; }
+    .poster-content { position: absolute; right: 7%; bottom: 6%; left: 7%; z-index: 8; display: grid; gap: .65rem; text-align: center; }
+    .poster-kicker { color: var(--glow-lime, #d8f36b); font-size: .72rem; letter-spacing: .2em; }
+    .poster-content h1 { margin: 0; color: #f5f7ef; font-size: clamp(2.5rem, 9vw, 7rem); line-height: .82; letter-spacing: -.06em; text-shadow: 0 5px 0 #101212, 0 18px 40px #000; }
+    .poster-content p { margin: .3rem auto 0; max-width: 560px; color: #d0d7ce; font-size: clamp(.8rem, 2vw, 1rem); }
+    .poster-actions { display: flex; justify-content: center; flex-wrap: wrap; gap: .6rem; margin-top: .6rem; }
+    .poster-actions button { min-width: 150px; border-radius: 999px; padding: .75rem 1rem; }
+    .poster-enter { border-color: var(--glow-lime) !important; background: var(--glow-lime) !important; color: #111 !important; box-shadow: 0 0 28px #d8f36b38; }
+    .poster-note { color: #8e9a8d; font-size: .7rem; }
+    @keyframes posterFloat { 0%, 100% { transform: rotate(-2deg) translateY(0); } 50% { transform: rotate(-1deg) translateY(-8px); } }
+    @keyframes posterLight { 0%, 18% { transform: translateX(-120%); } 58%, 78% { transform: translateX(120%); } 100% { transform: translateX(120%); } }
+    @media (max-width: 600px) { .poster-page { min-height: 680px; } .poster-collage { inset: 7% 3%; } .poster-layer { border-width: 4px; } .poster-layer.center { top: 18%; left: 15%; width: 70%; height: 55%; } .poster-layer.one, .poster-layer.two { height: 27%; } .poster-layer.three, .poster-layer.four { height: 27%; } .poster-content { bottom: 8%; } }
+  </style>
+  <script>
+    (() => {
+      'use strict';
+      const shell = document.querySelector('.page-shell');
+      if (!shell || document.querySelector('.poster-page')) return;
+      const imagePath = 'gpt6-poster-reference.png';
+      const poster = document.createElement('section');
+      poster.className = 'page poster-page is-active';
+      poster.dataset.workspace = 'POSTER';
+      poster.innerHTML = `<div class="poster-collage" aria-hidden="true"><figure class="poster-layer one"><img src="${imagePath}" alt=""></figure><figure class="poster-layer two"><img src="${imagePath}" alt=""></figure><figure class="poster-layer three"><img src="${imagePath}" alt=""></figure><figure class="poster-layer four"><img src="${imagePath}" alt=""></figure><figure class="poster-layer center"><img src="${imagePath}" alt=""></figure></div><div class="poster-content"><span class="poster-kicker">MINI RADIO / AUDIO LAB</span><h1>Retro<br>Reconstruction<br>Player</h1><p>从一张海报进入你的复古音乐选择器。</p><div class="poster-actions"><button class="poster-enter" type="button" data-poster-enter>进入播放器</button><button type="button" data-poster-library>选择歌曲</button></div><span class="poster-note">LOOPER AUDIO · VISUAL PLAYER · SONG LIBRARY</span></div>`;
+      shell.prepend(poster);
+      shell.querySelectorAll('.page').forEach((page) => { if (page !== poster) page.classList.remove('is-active'); });
+      const tabs = document.querySelector('.workspace-tabs');
+
+      /** 显示海报开场页。
+       * 入参：无。
+       * 返回值：无；页面不存在时不执行。
+       */
+      function showPoster() {
+        shell.querySelectorAll('.page').forEach((page) => page.classList.toggle('is-active', page === poster));
+        document.querySelectorAll('.workspace-tab').forEach((tab) => tab.classList.toggle('is-active', tab.dataset.target === 'POSTER'));
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      if (tabs && !tabs.querySelector('[data-target="POSTER"]')) {
+        const posterTab = document.createElement('button');
+        posterTab.className = 'workspace-tab';
+        posterTab.type = 'button';
+        posterTab.dataset.target = 'POSTER';
+        posterTab.textContent = 'POSTER';
+        posterTab.addEventListener('click', showPoster);
+        tabs.prepend(posterTab);
+      }
+
+      /** 从海报进入指定工作区。
+       * 入参：target 工作区标签名。
+       * 返回值：无；找不到目标标签时保留当前页面。
+       */
+      function openWorkspace(target) {
+        const tab = document.querySelector(`.workspace-tab[data-target="${target}"]`);
+        if (tab) tab.click();
+      }
+
+      poster.querySelector('[data-poster-enter]')?.addEventListener('click', () => openWorkspace('PLAYER'));
+      poster.querySelector('[data-poster-library]')?.addEventListener('click', () => openWorkspace('LIBRARY'));
+    })();
+  </script>
+  <style>
+    /* Background Lines 风格：点阵负责颗粒，横线负责空间层次。 */
+    .filter-page, .library-panel, .panel, .now, .queue-panel, .visual-deck {
+      background-image: radial-gradient(#ffffff0d 1px, transparent 1px), repeating-linear-gradient(0deg, transparent 0, transparent 30px, #8fb6d90b 31px, transparent 32px);
+      background-size: 15px 15px, 100% 32px;
+      animation: backgroundLinesDrift 18s linear infinite;
+    }
+    .filter-page::before, .library-panel::before, .panel::before, .now::before, .queue-panel::before, .visual-deck::before {
+      position: absolute;
+      inset: 0;
+      content: '';
+      pointer-events: none;
+      border-radius: inherit;
+      background: linear-gradient(115deg, transparent 15%, #d8f36b0a 45%, transparent 72%);
+      transform: translateX(-100%);
+      animation: backgroundLineSweep 12s ease-in-out infinite;
+    }
+    .filter-page, .library-panel, .panel, .now, .queue-panel, .visual-deck { position: relative; overflow: hidden; }
+    .filter-page > *, .library-panel > *, .panel > *, .now > *, .queue-panel > *, .visual-deck > * { position: relative; z-index: 1; }
+    @keyframes backgroundLinesDrift { from { background-position: 0 0, 0 0; } to { background-position: 0 0, 0 32px; } }
+    @keyframes backgroundLineSweep { 0%, 18% { transform: translateX(-100%); } 55%, 72% { transform: translateX(100%); } 100% { transform: translateX(100%); } }
+    @media (prefers-reduced-motion: reduce) { .filter-page, .library-panel, .panel, .now, .queue-panel, .visual-deck, .filter-page::before, .library-panel::before, .panel::before, .now::before, .queue-panel::before, .visual-deck::before { animation: none; } }
+  </style>
+  <style>
+    .camera-pixels { position: absolute; z-index: 2; inset: 0; width: 100%; height: 100%; pointer-events: none; opacity: 0; transition: opacity .35s ease; }
+    .camera-pixels.is-live { opacity: 1; }
+  </style>
+  <script>
+    (() => {
+      'use strict';
+      const stage = document.querySelector('.landing-stage');
+      const button = document.querySelector('.camera-mini');
+      if (!stage || !button || !navigator.mediaDevices?.getUserMedia) return;
+
+      const cameraCanvas = document.createElement('canvas');
+      cameraCanvas.className = 'camera-pixels';
+      stage.appendChild(cameraCanvas);
+      const cameraContext = cameraCanvas.getContext('2d');
+      const video = document.createElement('video');
+      video.autoplay = true;
+      video.muted = true;
+      video.playsInline = true;
+      const sampleCanvas = document.createElement('canvas');
+      sampleCanvas.width = 34;
+      sampleCanvas.height = 22;
+      const sampleContext = sampleCanvas.getContext('2d');
+      let cameraStream = null;
+      let isLive = false;
+
+      /** 绘制镜像 webcam 像素画面，画布尺寸随容器和设备像素比变化。 */
+      function drawCameraPixels() {
+        if (!isLive || video.readyState < 2) {
+          window.requestAnimationFrame(drawCameraPixels);
+          return;
+        }
+        const rect = cameraCanvas.getBoundingClientRect();
+        const ratio = window.devicePixelRatio || 1;
+        const width = Math.max(1, Math.floor(rect.width * ratio));
+        const height = Math.max(1, Math.floor(rect.height * ratio));
+        if (cameraCanvas.width !== width || cameraCanvas.height !== height) {
+          cameraCanvas.width = width;
+          cameraCanvas.height = height;
+        }
+        sampleContext.save();
+        sampleContext.clearRect(0, 0, 34, 22);
+        sampleContext.translate(34, 0);
+        sampleContext.scale(-1, 1);
+        sampleContext.drawImage(video, 0, 0, 34, 22);
+        sampleContext.restore();
+        const pixels = sampleContext.getImageData(0, 0, 34, 22).data;
+        const cellWidth = width / 34;
+        const cellHeight = height / 22;
+        cameraContext.fillStyle = '#070809';
+        cameraContext.fillRect(0, 0, width, height);
+        for (let row = 0; row < 22; row += 1) {
+          for (let column = 0; column < 34; column += 1) {
+            const index = (row * 34 + column) * 4;
+            const red = Math.floor(pixels[index] * .72);
+            const green = Math.floor(pixels[index + 1] * .72);
+            const blue = Math.floor(pixels[index + 2] * .72);
+            const x = column * cellWidth;
+            const y = row * cellHeight;
+            const gap = Math.max(2, cellWidth * .08);
+            cameraContext.fillStyle = `rgb(${red}, ${green}, ${blue})`;
+            cameraContext.fillRect(x, y, cellWidth - gap, cellHeight - gap);
+          }
+        }
+        window.requestAnimationFrame(drawCameraPixels);
+      }
+
+      /** 请求摄像头权限并开始独立的像素图层渲染。 */
+      async function startCameraPixels(event) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        if (isLive) return;
+        try {
+          cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+          video.srcObject = cameraStream;
+          await video.play();
+          isLive = true;
+          cameraCanvas.classList.add('is-live');
+          button.textContent = 'webcam 像素已启动';
+          window.requestAnimationFrame(drawCameraPixels);
+        } catch (error) {
+          button.textContent = 'webcam 未授权，使用像素背景';
+        }
+      }
+
+      button.addEventListener('click', startCameraPixels, true);
+    })();
+  </script>
+</body>
+</html>
