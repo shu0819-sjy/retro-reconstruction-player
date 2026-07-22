@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Retro Reconstruction Player / Unity UI Preview</title>
+  <style>
+    :root { color-scheme: dark; --ink: #0b0e0d; --panel: #121715; --line: #334038; --muted: #9ca99f; --lime: #d8f36b; --blue: #8fb6d9; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-width: 320px; background: var(--ink); color: #f3f7ee; font: 15px/1.5 Arial, sans-serif; }
+    button { border: 1px solid var(--line); border-radius: 6px; padding: 10px 16px; color: #f3f7ee; background: #17201b; cursor: pointer; font: inherit; }
+    button:hover, button.active { border-color: var(--lime); color: var(--lime); }
+    .shell { width: min(1180px, calc(100% - 32px)); margin: 0 auto; padding: 24px 0 40px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
+    .brand { color: var(--lime); letter-spacing: .08em; font-weight: 700; }
+    .status { color: var(--muted); font-size: 12px; }
+    nav { display: flex; flex-wrap: wrap; gap: 8px; }
+    main { min-height: 620px; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: #0f1411; }
+    .page { display: none; min-height: 620px; padding: clamp(24px, 5vw, 64px); position: relative; }
+    .page.active { display: block; }
+    .poster-page { perspective: 1200px; overflow: hidden; }
+    .poster-page::before { content: ''; position: absolute; inset: 0; opacity: .35; background: repeating-linear-gradient(90deg, #1e2a23 0 1px, transparent 1px 28px), repeating-linear-gradient(0deg, #1e2a23 0 1px, transparent 1px 28px); }
+    .poster-card { position: absolute; top: 58px; right: 7%; width: min(46%, 480px); aspect-ratio: 4 / 5; overflow: hidden; border: 1px solid #d8f36b66; border-radius: 10px; transform-style: preserve-3d; box-shadow: 0 24px 70px #000c; transition: transform .18s ease-out; }
+    .poster-card img { width: 100%; height: 100%; object-fit: cover; display: block; filter: saturate(1.12) contrast(1.08); }
+    .poster-card::after { content: ''; position: absolute; inset: 0; background: #07100a55; pointer-events: none; }
+    .poster-copy { position: relative; z-index: 2; max-width: 520px; padding-top: 150px; transform: translateZ(70px); }
+    h1 { max-width: 7ch; margin: 16px 0; font-size: clamp(46px, 8vw, 92px); line-height: .88; letter-spacing: -.05em; }
+    h2 { margin: 0 0 18px; color: var(--lime); font-size: clamp(34px, 6vw, 64px); }
+    p { color: #c8d1c8; max-width: 560px; }
+    .eyebrow { color: var(--lime); letter-spacing: .18em; font-size: 12px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; }
+    .primary { background: var(--lime); color: #10130f; border-color: var(--lime); }
+    .content { max-width: 720px; padding-top: 70px; }
+    .panel { border: 1px solid var(--line); border-radius: 8px; padding: 22px; margin: 16px 0; background: var(--panel); }
+    .track { display: flex; justify-content: space-between; align-items: center; gap: 12px; border-top: 1px solid var(--line); padding: 16px 0; }
+    canvas { width: 100%; height: 150px; margin-top: 24px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    @media (max-width: 760px) { .topbar { align-items: flex-start; flex-direction: column; } .poster-card { position: relative; top: auto; right: auto; width: 100%; max-width: 430px; margin: 24px auto 0; } .poster-copy { padding-top: 20px; } .page { min-height: 760px; } }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar"><div><div class="brand">RETRO RECONSTRUCTION PLAYER</div><div class="status">UNITY ACADEMY UI / BROWSER PREVIEW</div></div><div id="status" class="status">READY / UI CORE ONLINE</div></header>
+    <nav aria-label="页面导航"><button data-page="POSTER" class="active">POSTER</button><button data-page="INTRO">INTRO</button><button data-page="PLAYER">PLAYER</button><button data-page="LIBRARY">LIBRARY</button></nav>
+    <main>
+      <section class="page poster-page active" data-view="POSTER"><div class="poster-copy"><div class="eyebrow">MINI RADIO / AUDIO LAB</div><h1>Retro<br>Reconstruction<br>Player</h1><p>从一张 GTA6 海报进入你的复古音乐选择器。</p><div class="actions"><button class="primary" data-go="INTRO">进入 INTRO</button><button data-go="LIBRARY">选择歌曲</button></div></div><div class="poster-card" id="poster-card"><img src="gpt6-poster-reference.png" alt="GTA6 复古海报"></div></section>
+      <section class="page" data-view="INTRO"><div class="content"><div class="eyebrow">ORIGINAL AUDIO WORKSPACE</div><h2>INTRO</h2><p>海报、曲库、播放器和动态视觉由同一套页面状态驱动。</p><p>页面顺序：POSTER → INTRO → PLAYER → LIBRARY</p><div class="actions"><button class="primary" data-go="PLAYER">进入 PLAYER</button><button data-go="POSTER">返回 POSTER</button></div></div></section>
+      <section class="page" data-view="PLAYER"><div class="content"><div class="eyebrow">NOW SHAPING / WEB AUDIO</div><h2>PLAYER</h2><div class="panel"><strong>Never Gonna Give You Up</strong><div class="status">50 SEC LOOPER / UI PREVIEW</div><canvas id="spectrum" width="900" height="150"></canvas><div class="actions"><button class="primary" data-play>播放</button><button data-stop>停止</button></div></div></div></section>
+      <section class="page" data-view="LIBRARY"><div class="content"><div class="eyebrow">SELECT A TRACK</div><h2>LIBRARY</h2><div class="panel"><div class="track"><span>Never Gonna Give You Up</span><button data-go="PLAYER">打开</button></div><div class="track"><span>Retro Night Drive</span><button data-select="Retro Night Drive">选择</button></div><div class="track"><span>GTA6 Poster Theme</span><button data-select="GTA6 Poster Theme">选择</button></div></div><button data-go="POSTER">返回 POSTER</button></div></section>
+    </main>
+  </div>
+  <script>
+    const views = [...document.querySelectorAll('[data-view]')];
+    const navButtons = [...document.querySelectorAll('[data-page]')];
+    const status = document.querySelector('#status');
+    const poster = document.querySelector('#poster-card');
+    let playing = false;
+    function openPage(pageName) { views.forEach((view) => view.classList.toggle('active', view.dataset.view === pageName)); navButtons.forEach((button) => button.classList.toggle('active', button.dataset.page === pageName)); }
+    function setStatus(message) { status.textContent = message; }
+    navButtons.forEach((button) => button.addEventListener('click', () => openPage(button.dataset.page)));
+    document.querySelectorAll('[data-go]').forEach((button) => button.addEventListener('click', () => openPage(button.dataset.go)));
+    document.querySelectorAll('[data-select]').forEach((button) => button.addEventListener('click', () => setStatus(`SELECTED / ${button.dataset.select}`)));
+    document.querySelector('[data-play]').addEventListener('click', () => { playing = true; setStatus('PLAY REQUESTED / AUDIO MODULE SEPARATE'); });
+    document.querySelector('[data-stop]').addEventListener('click', () => { playing = false; setStatus('STOP REQUESTED / AUDIO MODULE SEPARATE'); });
+    poster.addEventListener('pointermove', (event) => { const bounds = poster.getBoundingClientRect(); const x = (event.clientX - bounds.left) / bounds.width - .5; const y = (event.clientY - bounds.top) / bounds.height - .5; poster.style.transform = `rotateX(${y * -7}deg) rotateY(${x * 9}deg)`; });
+    poster.addEventListener('pointerleave', () => { poster.style.transform = ''; });
+    const canvas = document.querySelector('#spectrum'); const context = canvas.getContext('2d');
+    function drawSpectrum(timestamp) { const width = canvas.width; const height = canvas.height; context.clearRect(0, 0, width, height); for (let index = 0; index < 64; index += 1) { const wave = Math.abs(Math.sin(index * .43 + timestamp / 700)); const heightValue = playing ? 16 + wave * 92 : 12 + wave * 20; context.fillStyle = index % 3 === 0 ? '#d8f36b' : index % 3 === 1 ? '#8fb6d9' : '#c37f61'; context.fillRect(index * width / 64, height - heightValue, 5, heightValue); } requestAnimationFrame(drawSpectrum); }
+    requestAnimationFrame(drawSpectrum);
+  </script>
+</body>
+</html>
