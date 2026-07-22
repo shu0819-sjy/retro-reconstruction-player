@@ -48,18 +48,19 @@
       </section>
     </section>
   </main>
+  <script src="never-gonna-give-you-up-looper.js"></script>
   <script>
     'use strict';
     const melody = [72, 72, 76, 79, 79, 76, 72, 67, 69, 69, 72, 76, 76, 72, 69, 67];
     const bpm = 113;
     const stepSeconds = 60 / bpm / 2;
+    const songDuration = 50;
     const poster = document.querySelector('[data-poster]');
     const canvas = document.querySelector('[data-spectrum]');
     const context = canvas.getContext('2d');
     const stateLabel = document.querySelector('[data-state]');
     const timeLabel = document.querySelector('[data-time]');
-    let audioContext = null;
-    let activeOscillators = [];
+    let isPlaying = false;
     let startedAt = 0;
     let animationId = 0;
 
@@ -70,9 +71,11 @@
 
     // 功能：停止当前预览；无入参；返回值为 undefined；重复调用安全。
     function stopPreview() {
-      activeOscillators.forEach((oscillator) => oscillator.stop());
-      activeOscillators = [];
-      if (audioContext) { audioContext.close(); audioContext = null; }
+      if (typeof window.stopNeverGonnaGiveYouUp === 'function') {
+        window.stopNeverGonnaGiveYouUp();
+      }
+      isPlaying = false;
+      startedAt = 0;
       window.cancelAnimationFrame(animationId);
       stateLabel.textContent = '等待播放';
       timeLabel.textContent = '00:00';
@@ -83,7 +86,7 @@
     function drawSpectrum(timestamp) {
       const width = canvas.width;
       const height = canvas.height;
-      const pulse = startedAt ? (Math.sin(timestamp / 160) + 1) / 2 : .12;
+      const pulse = isPlaying ? (Math.sin(timestamp / 160) + 1) / 2 : .12;
       context.clearRect(0, 0, width, height);
       for (let index = 0; index < 48; index += 1) {
         const wave = Math.abs(Math.sin(index * .53 + timestamp / 700));
@@ -91,8 +94,8 @@
         context.fillStyle = index % 3 === 0 ? '#d8f36b' : index % 3 === 1 ? '#8fb6d9' : '#f09a61';
         context.fillRect(index * width / 48, height - barHeight, Math.max(4, width / 140), barHeight);
       }
-      if (startedAt) {
-        const elapsed = Math.min((performance.now() - startedAt) / 1000, melody.length * stepSeconds);
+      if (isPlaying) {
+        const elapsed = Math.min((performance.now() - startedAt) / 1000, songDuration);
         timeLabel.textContent = `00:${String(Math.floor(elapsed)).padStart(2, '0')}`;
         animationId = window.requestAnimationFrame(drawSpectrum);
       }
@@ -100,27 +103,22 @@
     }
 
     // 功能：按音符数组安排试听；无入参；返回值为 Promise；浏览器不支持音频时显示错误。
-    async function playPreview() {
+    function playPreview() {
       stopPreview();
-      audioContext = new AudioContext();
       startedAt = performance.now();
-      stateLabel.textContent = '正在播放 Source 旋律';
-      melody.forEach((midiNumber, index) => {
-        const oscillator = audioContext.createOscillator();
-        const gain = audioContext.createGain();
-        const startTime = audioContext.currentTime + index * stepSeconds;
-        oscillator.type = 'triangle';
-        oscillator.frequency.value = midiToFrequency(midiNumber);
-        gain.gain.setValueAtTime(.0001, startTime);
-        gain.gain.exponentialRampToValueAtTime(.16, startTime + .02);
-        gain.gain.exponentialRampToValueAtTime(.0001, startTime + stepSeconds * .86);
-        oscillator.connect(gain).connect(audioContext.destination);
-        oscillator.start(startTime);
-        oscillator.stop(startTime + stepSeconds);
-        activeOscillators.push(oscillator);
+      isPlaying = true;
+      stateLabel.textContent = '正在播放原曲 50 秒 looper';
+      if (typeof window.playNeverGonnaGiveYouUp !== 'function') {
+        stateLabel.textContent = '原曲脚本加载失败';
+        isPlaying = false;
+        return;
+      }
+      window.playNeverGonnaGiveYouUp().catch((error) => {
+        stateLabel.textContent = '原曲播放失败：' + error.message;
+        isPlaying = false;
       });
       animationId = window.requestAnimationFrame(drawSpectrum);
-      window.setTimeout(stopPreview, melody.length * stepSeconds * 1000 + 500);
+      window.setTimeout(stopPreview, songDuration * 1000 + 500);
     }
 
     // 功能：读取并展示 Source 文件；无入参；返回值为 Promise；读取失败显示原因。
